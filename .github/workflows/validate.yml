@@ -1,0 +1,56 @@
+name: Validate Jekyll
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create temporary Markdown fixture
+        run: |
+          cat > _posts/2000-01-01-jekyll-check.md <<'POST'
+          ---
+          title: "Markdown conversion check"
+          category: 개발
+          ---
+          ## Markdown heading check
+
+          **Bold check**
+
+          ```python
+          print("hello")
+          ```
+
+          | Name | Value |
+          | --- | --- |
+          | check | passed |
+          POST
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+      - name: Check generated site
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          root = Path('_site')
+          home = (root / 'index.html').read_text()
+          post = (root / 'posts/2000/01/01/jekyll-check/index.html').read_text()
+          assert 'Markdown conversion check' in home
+          assert '/posts/2000/01/01/jekyll-check/' in home
+          assert 'data-post-categories="[&quot;개발&quot;]"' in home
+          assert '<strong>Bold check</strong>' in post
+          assert '<table>' in post
+          assert 'language-python' in post
+          assert '<h2' in post and 'Markdown heading check' in post
+          assert 'href="/style.css"' in post
+          assert 'src="/app.js"' in post
+          assert '<title>Markdown conversion check · seoyc0219</title>' in post
+          assert not re.search(r'{[{%]', home + post)
+          print('Markdown, post layout, category metadata, URLs and assets passed.')
+          PY

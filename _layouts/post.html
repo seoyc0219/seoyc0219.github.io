@@ -1,0 +1,9 @@
+---
+layout: default
+---
+<article class="post-article">
+<a class="back-link" href="{{ '/' | relative_url }}#journal">← 기록으로 돌아가기</a>
+<header class="article-heading"><div class="post-meta"><span>{{ page.categories | join: ' · ' | escape }}</span><time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: '%Y.%m.%d' }}</time></div><h1>{{ page.title | escape }}</h1>{% if page.description %}<p>{{ page.description | escape }}</p>{% endif %}</header>
+<div class="prose">{{ content }}</div>
+<a class="back-link bottom-back" href="{{ '/' | relative_url }}#journal">← 모든 기록 보기</a>
+</article>
