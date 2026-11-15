@@ -141,6 +141,7 @@ if (room) {
   function plantStage(item) { return plantGrowth.get(item.id) || 0; }
   function refreshFurniture(button, item) {
     let label = types[item.type].label;
+    if (item.type === 'chair') label = '의자 · 한 바퀴 회전';
     if (item.type === 'bed') { label = sleeping ? '침대 · 캐릭터 깨우기' : '침대 · 캐릭터 재우기'; button.setAttribute('aria-pressed',String(sleeping)); }
     if (item.type === 'lamp') { label = lightsOn ? '조명 · 불 끄기' : '조명 · 불 켜기'; button.setAttribute('aria-pressed',String(lightsOn)); button.classList.toggle('lamp-lit',lightsOn); button.querySelector('use').setAttribute('href',lightsOn ? '#i-lamp' : '#i-lamp-off'); }
     if (item.type === 'plant') { const stage = plantStage(item); label = stage === 4 ? '식물 · 다 자랐어요' : `식물 · 성장 ${stage}/4 · 눌러서 키우기`; button.dataset.growth = String(stage); button.querySelector('use').setAttribute('href',`#i-plant-${stage}`); }
@@ -173,7 +174,19 @@ if (room) {
       button.classList.remove('plant-pop'); void button.offsetWidth; button.classList.add('plant-pop');
       toast(stage+1 === 4 ? '식물이 다 자랐어요! 꽃이 피었네요 🌸' : `식물이 자라고 있어요 🌱 (${stage+1}/4)`);
     }
-    else toast('여기는 코딩하는 자리! ⌨');
+    else if (type === 'chair') {
+      if (button.classList.contains('chair-spinning')) return;
+      button.classList.add('chair-spinning');
+      const svg = button.querySelector('svg');
+      let timer;
+      function finish(event) {
+        if (event && event.animationName !== 'chair-swivel') return;
+        clearTimeout(timer); button.classList.remove('chair-spinning');
+        svg.removeEventListener('animationend', finish);
+      }
+      svg.addEventListener('animationend', finish);
+      timer = setTimeout(() => finish(), 1100);
+    }
   }
   function renderRoom() { layer.replaceChildren(); items.forEach(item => { const button = document.createElement('button'); button.className = 'furniture'; button.dataset.itemId = item.id; button.dataset.type = item.type; button.style.setProperty('--w', `${types[item.type].width}%`); button.style.setProperty('--x', `${item.x}%`); button.style.setProperty('--y', `${item.y}%`); button.style.zIndex = String(Math.round(item.y)); button.setAttribute('aria-label', types[item.type].label + (editing ? ' · 방향키로 이동' : '')); const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); const use = document.createElementNS('http://www.w3.org/2000/svg', 'use'); const viewBoxes = { desk: '0 0 180 135', shelf: '0 0 115 155', bed: '0 0 180 105', plant: '0 0 90 125', chair: '0 0 95 125', lamp: '0 0 95 125', bug: '0 0 70 70' }; svg.setAttribute('viewBox', viewBoxes[item.type]); svg.setAttribute('aria-hidden', 'true'); use.setAttribute('href', `#i-${item.type}`); svg.append(use); const label = document.createElement('span'); label.className = 'item-label'; label.textContent = types[item.type].label; button.append(svg, label);
     button.addEventListener('click', () => { if (Date.now() < suppressClickUntil) return; if (editing) select(item.id); else activate(item, button); });
