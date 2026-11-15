@@ -124,9 +124,9 @@ if (room) {
   const loadedLife = storageGet(LIFE_KEY, {});
   const life = loadedLife && typeof loadedLife === 'object' && !Array.isArray(loadedLife) ? loadedLife : {};
   let sleeping = life.sleeping === true, lightsOn = life.lightsOn !== false;
-  const growthEntries = life.plants && typeof life.plants === 'object' && !Array.isArray(life.plants) ? Object.entries(life.plants) : [];
-  const plantGrowth = new Map(growthEntries.filter(([,stage]) => Number.isInteger(stage) && stage >= 0 && stage <= 4));
-  function saveLife() { if (!storageSet(LIFE_KEY, { sleeping, lightsOn, plants: Object.fromEntries(plantGrowth) })) toast('이 브라우저에 상태를 저장하지 못했어요. 현재 화면에서는 계속 사용할 수 있어요.'); }
+  // Plant growth lasts only while this page is open.
+  const plantGrowth = new Map();
+  function saveLife() { if (!storageSet(LIFE_KEY, { sleeping, lightsOn })) toast('이 브라우저에 상태를 저장하지 못했어요. 현재 화면에서는 계속 사용할 수 있어요.'); }
   const avatar = $('profile-avatar');
   if (avatar) { const preload = new Image(); preload.src = avatar.dataset.sleepSrc; }
   function updateAvatar() {
@@ -170,7 +170,7 @@ if (room) {
     else if (type === 'plant') {
       const stage = plantStage(item);
       if (stage === 4) { toast('식물이 다 자랐어요! 🌸'); return; }
-      plantGrowth.set(item.id,stage+1); refreshFurniture(button,item); saveLife();
+      plantGrowth.set(item.id,stage+1); refreshFurniture(button,item);
       button.classList.remove('plant-pop'); void button.offsetWidth; button.classList.add('plant-pop');
       toast(stage+1 === 4 ? '식물이 다 자랐어요! 꽃이 피었네요 🌸' : `식물이 자라고 있어요 🌱 (${stage+1}/4)`);
     }
@@ -205,6 +205,13 @@ if (room) {
   if (saved && !validItems(saved)) toast('저장된 배치를 읽지 못해 기본 미니룸을 열었어요.');
   if (saved && validItems(saved)) $('save-status').textContent = '이 브라우저에 저장한 미니룸을 불러왔어요 ♡';
   setEditing(false);
+  window.addEventListener('pageshow', event => {
+    if (!event.persisted) return;
+    plantGrowth.clear();
+    layer.querySelectorAll('.furniture').forEach((button,index) => {
+      if (items[index].type === 'plant') refreshFurniture(button,items[index]);
+    });
+  });
   let resizeFrame; window.addEventListener('resize', () => { cancelAnimationFrame(resizeFrame); resizeFrame = requestAnimationFrame(() => layer.querySelectorAll('.furniture').forEach((element, index) => place(element, items[index]))); });
   window.addEventListener('beforeunload', event => { if (dirty) { event.preventDefault(); event.returnValue = ''; } });
 }
