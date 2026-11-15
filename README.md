@@ -2,7 +2,7 @@
 
 https://seoyc0219.github.io/
 
-Code, Security & Little Notes. 레트로 컴퓨터와 인터랙티브 미니룸 디자인의 Jekyll 블로그입니다. 개발 · 보안 · 기타. 카테고리를 사용합니다.
+Code & Security. 레트로 컴퓨터와 인터랙티브 미니룸 디자인의 Jekyll 블로그입니다. 개발 · 보안 · 기타. 카테고리를 사용합니다.
 
 ## GitHub에서 글 쓰기
 
