@@ -48,8 +48,8 @@ jobs:
           assert '<table>' in post
           assert 'language-python' in post
           assert '<h2' in post and 'Markdown heading check' in post
-          assert 'href="/style.css"' in post
-          assert 'src="/app.js"' in post
+          assert 'href="/style.css?v=' in post
+          assert 'src="/app.js?v=' in post
           assert '<title>Markdown conversion check · 0chae.exe</title>' in post
           assert not re.search(r'{[{%]', home + post)
           print('Markdown, post layout, category metadata, URLs and assets passed.')
