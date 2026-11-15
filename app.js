@@ -177,15 +177,16 @@ if (room) {
     else if (type === 'chair') {
       if (button.classList.contains('chair-spinning')) return;
       button.classList.add('chair-spinning');
-      const svg = button.querySelector('svg');
-      let timer;
-      function finish(event) {
-        if (event && event.animationName !== 'chair-swivel') return;
-        clearTimeout(timer); button.classList.remove('chair-spinning');
-        svg.removeEventListener('animationend', finish);
-      }
-      svg.addEventListener('animationend', finish);
-      timer = setTimeout(() => finish(), 1100);
+      const use = button.querySelector('use');
+      const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      const frames = reduced ? ['#i-chair','#i-chair-turn2','#i-chair-turn4','#i-chair-turn6','#i-chair'] : ['#i-chair','#i-chair-turn1','#i-chair-turn2','#i-chair-turn3','#i-chair-turn4','#i-chair-turn5','#i-chair-turn6','#i-chair-turn7','#i-chair'];
+      let frame = 0;
+      const timer = setInterval(() => {
+        if (!button.isConnected) { clearInterval(timer); return; }
+        frame++;
+        use.setAttribute('href',frames[frame]);
+        if (frame === frames.length - 1) { clearInterval(timer); button.classList.remove('chair-spinning'); }
+      },reduced ? 180 : 120);
     }
   }
   function renderRoom() { layer.replaceChildren(); items.forEach(item => { const button = document.createElement('button'); button.className = 'furniture'; button.dataset.itemId = item.id; button.dataset.type = item.type; button.style.setProperty('--w', `${types[item.type].width}%`); button.style.setProperty('--x', `${item.x}%`); button.style.setProperty('--y', `${item.y}%`); button.style.zIndex = String(Math.round(item.y)); button.setAttribute('aria-label', types[item.type].label + (editing ? ' · 방향키로 이동' : '')); const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); const use = document.createElementNS('http://www.w3.org/2000/svg', 'use'); const viewBoxes = { desk: '0 0 180 135', shelf: '0 0 115 155', bed: '0 0 180 105', plant: '0 0 90 125', chair: '0 0 95 125', lamp: '0 0 95 125', bug: '0 0 70 70' }; svg.setAttribute('viewBox', viewBoxes[item.type]); svg.setAttribute('aria-hidden', 'true'); use.setAttribute('href', `#i-${item.type}`); svg.append(use); const label = document.createElement('span'); label.className = 'item-label'; label.textContent = types[item.type].label; button.append(svg, label);
