@@ -35,22 +35,66 @@ categoryButtons.forEach(button => button.addEventListener('click', () => filterP
 document.querySelectorAll('[data-nav-category]').forEach(link => link.addEventListener('click', event => { if (!$('journal')) return; event.preventDefault(); filterPosts(link.dataset.navCategory); $('journal').scrollIntoView({ block: 'start' }); }));
 filterPosts(selectedCategory);
 
-// Local guestbook. Treat all visitor text as text, never markup.
-const GUEST_KEY = '0chae.guestbook.v1';
-function validGuest(entry) { return entry && typeof entry.id === 'string' && typeof entry.name === 'string' && typeof entry.message === 'string' && typeof entry.date === 'string' && Number.isFinite(Date.parse(entry.date)); }
-let storedGuests = storageGet(GUEST_KEY, []);
-let guests = Array.isArray(storedGuests) ? storedGuests.filter(validGuest).slice(0, 50) : [];
-function makeGuestCard(entry, deletable) {
-  const card = document.createElement('article'); card.className = 'guest-card';
-  const header = document.createElement('header'); const name = document.createElement('h3'); name.textContent = `${entry.name.slice(0, 20)} ♡`; header.append(name);
-  if (deletable) { const button = document.createElement('button'); button.className = 'delete-guest'; button.textContent = '삭제'; button.setAttribute('aria-label', `${entry.name.slice(0, 20)}의 방명록 삭제`); button.addEventListener('click', () => { const next = guests.filter(item => item.id !== entry.id); if (!storageSet(GUEST_KEY, next)) { toast('저장 공간을 사용할 수 없어 삭제하지 못했어요.'); return; } guests = next; renderGuests(); }); header.append(button); }
-  const time = document.createElement('time'); time.dateTime = entry.date; time.textContent = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(entry.date));
-  const message = document.createElement('p'); message.textContent = entry.message.slice(0, 300); card.append(header, time, message); return card;
+// Cosmetic game rewards are personal browser unlocks, not security credentials.
+const REWARD_KEY = '0chae.reward.v1';
+const rewardData = storageGet(REWARD_KEY, null);
+let hunterUnlocked = rewardData?.unlocked === true;
+let bestScore = Number.isFinite(rewardData?.bestScore) ? Math.max(0, Math.min(300, rewardData.bestScore)) : 0;
+function updateRewardControls() {
+  $('hunter-style').disabled = !hunterUnlocked;
+  $('reward-status').textContent = hunterUnlocked ? '버그 헌터 획득! 배지와 별 프레임을 사용할 수 있어요.' : '버그 찾기 3문제를 풀면 잠금이 해제돼요.';
 }
-function guestPlaceholder() { const el = document.createElement('div'); el.className = 'guest-placeholder'; const heart = document.createElement('span'); heart.textContent = '♡'; el.append(heart, document.createTextNode('아직 남겨진 인사가 없어요.')); return el; }
-function renderGuests() { const entries = $('guest-entries'); entries.replaceChildren(); if (!guests.length) entries.append(guestPlaceholder()); else guests.forEach(entry => entries.append(makeGuestCard(entry, true))); const preview = $('guest-preview'); if (preview) { preview.replaceChildren(); if (!guests.length) preview.append(guestPlaceholder()); else guests.slice(0, 3).forEach(entry => preview.append(makeGuestCard(entry, false))); } }
-$('guest-form').addEventListener('submit', event => { event.preventDefault(); const form = event.currentTarget; const name = form.elements.nickname.value.trim().slice(0, 20); const message = form.elements.message.value.trim().slice(0, 300); if (!name || !message) { toast('닉네임과 인사를 적어주세요.'); return; } const entry = { id: crypto.randomUUID(), name, message, date: new Date().toISOString() }; const next = [entry, ...guests].slice(0, 50); if (!storageSet(GUEST_KEY, next)) { toast('저장 공간을 사용할 수 없어 인사를 저장하지 못했어요.'); return; } guests = next; form.reset(); renderGuests(); toast('이 브라우저에 인사를 저장했어요 ♡'); });
-renderGuests();
+updateRewardControls();
+
+// Public nickname guestbook. Only deletion capabilities remain browser-local.
+const GUEST_API = 'https://ochae-guestbook.vigilantclef2.chatgpt.site/api/guestbook';
+const DELETE_KEY = '0chae.guest.delete.v1';
+const storedTokens = storageGet(DELETE_KEY, {});
+const deleteTokens = storedTokens && !Array.isArray(storedTokens) && typeof storedTokens === 'object' ? storedTokens : {};
+let guests = [], guestLoading = false, guestSubmitting = false, nextGuestPage = null;
+async function guestRequest(url, options = {}) {
+  const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 15000);
+  try { const response = await fetch(url, { ...options, signal: controller.signal }); const data = await response.json(); if (!response.ok) throw new Error(data.error || '서버에 연결하지 못했어요.'); return data; }
+  finally { clearTimeout(timer); }
+}
+function validEntry(entry) { return entry && typeof entry.id === 'string' && typeof entry.name === 'string' && typeof entry.message === 'string' && typeof entry.created_at === 'string' && Number.isFinite(Date.parse(entry.created_at)); }
+function makeGuestCard(entry, allowDelete = false) {
+  const card = document.createElement('article'); card.className = 'guest-card' + (entry.style === 'bug-hunter' ? ' hunter-card' : '');
+  const header = document.createElement('header'); const name = document.createElement('h3'); name.textContent = entry.name.slice(0,20); header.append(name);
+  if (allowDelete && Object.hasOwn(deleteTokens, entry.id)) { const button = document.createElement('button'); button.className = 'delete-guest'; button.textContent = '삭제'; button.setAttribute('aria-label', `${entry.name.slice(0,20)}의 방명록 삭제`); button.addEventListener('click', async () => {
+    button.disabled = true;
+    try { const url = new URL(GUEST_API); url.searchParams.set('id',entry.id); await guestRequest(url.href, { method:'DELETE', headers:{Authorization:`Bearer ${deleteTokens[entry.id]}`} }); delete deleteTokens[entry.id]; storageSet(DELETE_KEY,deleteTokens); guests = guests.filter(item => item.id !== entry.id); renderGuests(); toast('방명록을 삭제했어요.'); }
+    catch(error) { button.disabled = false; toast(error.message || '삭제하지 못했어요.'); }
+  }); header.append(button); }
+  const time = document.createElement('time'); time.dateTime = entry.created_at; time.textContent = new Intl.DateTimeFormat('ko-KR', {timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(entry.created_at));
+  const message = document.createElement('p'); message.textContent = entry.message.slice(0,300); card.append(header,time);
+  if (entry.style === 'bug-hunter') { const badge = document.createElement('span'); badge.className = 'hunter-badge'; badge.textContent = '🐛 BUG HUNTER'; card.append(badge); }
+  card.append(message); return card;
+}
+function guestPlaceholder(message = '아직 남겨진 인사가 없어요.') { const el = document.createElement('div'); el.className = 'guest-placeholder'; const heart = document.createElement('span'); heart.textContent = '♡'; el.append(heart,document.createTextNode(message)); return el; }
+function renderGuests() { const entries = $('guest-entries'); entries.replaceChildren(); if (!guests.length) entries.append(guestPlaceholder()); else guests.forEach(entry => entries.append(makeGuestCard(entry,true))); const preview = $('guest-preview'); if (preview) { preview.replaceChildren(); if (!guests.length) preview.append(guestPlaceholder()); else guests.slice(0,3).forEach(entry => preview.append(makeGuestCard(entry))); } }
+async function loadGuests(more = false) {
+  if (guestLoading) return; guestLoading = true; $('refresh-guests').disabled = true; $('more-guests').disabled = true; $('guest-status').textContent = '방명록을 불러오는 중…';
+  try { const url = new URL(GUEST_API); if (more && nextGuestPage !== null) url.searchParams.set('page',String(nextGuestPage)); const data = await guestRequest(url.href); if (!Array.isArray(data.entries)) throw new Error('방명록 응답을 읽지 못했어요.');
+    const incoming = data.entries.filter(validEntry); guests = more ? [...guests,...incoming.filter(entry => !guests.some(item => item.id === entry.id))] : incoming; nextGuestPage = Number.isInteger(data.nextPage) ? data.nextPage : null;
+    renderGuests(); $('more-guests').hidden = nextGuestPage === null; $('guest-status').textContent = '모든 방문자와 함께 보는 방명록이에요.';
+  } catch(error) { $('guest-status').textContent = error.message || '방명록을 불러오지 못했어요. 새로고침을 눌러주세요.'; if (!guests.length) for (const target of [$('guest-entries'),$('guest-preview')]) if (target) target.replaceChildren(guestPlaceholder('방명록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.')); }
+  finally { guestLoading = false; $('refresh-guests').disabled = false; $('more-guests').disabled = false; }
+}
+$('refresh-guests').addEventListener('click', () => loadGuests()); $('more-guests').addEventListener('click', () => loadGuests(true));
+$('guest-form').addEventListener('submit', async event => {
+  event.preventDefault(); if (guestSubmitting) return; const form = event.currentTarget; const name = form.elements.nickname.value.trim().slice(0,20); const message = form.elements.message.value.trim().slice(0,300);
+  if (!name || !message) { toast('닉네임과 인사를 적어주세요.'); return; }
+  const style = hunterUnlocked && form.elements.style.value === 'bug-hunter' ? 'bug-hunter' : 'plain';
+  const deleteToken = Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16).padStart(2,'0')).join('');
+  const submit = form.querySelector('[type="submit"]'); guestSubmitting = true; submit.disabled = true; submit.textContent = '등록하는 중…';
+  try { const data = await guestRequest(GUEST_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,message,style,deleteToken,website:form.elements.website.value})}); if (!validEntry(data.entry)) throw new Error('등록 결과를 확인하지 못했어요. 새로고침으로 확인해주세요.');
+    deleteTokens[data.entry.id] = deleteToken; const saved = storageSet(DELETE_KEY,deleteTokens); form.elements.message.value = ''; guests = [data.entry,...guests.filter(item => item.id !== data.entry.id)]; renderGuests(); $('guest-status').textContent = '등록 완료! 다른 방문자에게도 보여요.'; toast(saved ? '방명록을 남겼어요 ♡' : '글은 등록됐지만 삭제 정보를 이 브라우저에 저장하지 못했어요.');
+  } catch(error) { $('guest-status').textContent = error.message || '등록하지 못했어요. 입력한 내용은 유지했어요.'; toast(error.message || '등록하지 못했어요. 잠시 후 다시 시도해주세요.'); }
+  finally { guestSubmitting = false; submit.disabled = false; submit.textContent = '✎ 인사 남기기'; }
+});
+for (const target of [$('guest-entries'),$('guest-preview')]) if (target) target.replaceChildren(guestPlaceholder('방명록을 불러오는 중…'));
+loadGuests();
 
 // Educational examples only; snippets are displayed as text and never executed.
 const challenges = [
@@ -59,11 +103,18 @@ const challenges = [
   { title: '03. 누구의 메모일까요?', language: 'Python / API', lines: ['@app.get("/notes/<note_id>")', '@login_required', 'def read_note(note_id):', '    note = db.get_note(note_id)', '    return jsonify(note)'], answer: 4, why: '로그인 여부만 확인하고 메모 소유자를 확인하지 않은 채 데이터를 반환하고 있어요. 다른 사람의 메모에 접근하는 IDOR 위험입니다.', fix: '반환 전에 note.owner_id와 current_user.id를 비교하고, 권한이 없으면 403을 반환해요. 서버에서 객체별 권한을 확인해야 합니다.' }
 ];
 let gameIndex = 0, gameScore = 0, gameSolved = false, wrongLines = new Set();
-function renderChallenge() { const question = challenges[gameIndex]; gameSolved = false; wrongLines = new Set(); $('game-progress').textContent = `문제 ${gameIndex + 1} / ${challenges.length} · ${question.language}`; $('game-score').textContent = `${gameScore} pts`; $('game-title').textContent = question.title; $('game-prompt').textContent = '취약점이 발생하는 줄을 눌러보세요.'; $('game-feedback').replaceChildren(); $('game-next').hidden = true; $('game-restart').hidden = true; $('code-lines').replaceChildren(); question.lines.forEach((line, index) => { const button = document.createElement('button'); button.className = 'code-line'; const number = document.createElement('span'); number.textContent = String(index + 1); const code = document.createElement('code'); code.textContent = line; button.append(number, code); button.setAttribute('aria-label', `${index + 1}번째 줄: ${line}`); button.addEventListener('click', () => answerLine(index, button)); $('code-lines').append(button); }); }
-function answerLine(index, button) { if (gameSolved) return; const question = challenges[gameIndex]; if (index !== question.answer) { wrongLines.add(index); button.classList.add('wrong'); $('game-feedback').textContent = '이 줄은 핵심 취약 지점이 아니에요. 외부 입력이 어디에 쓰이는지, 권한 검사가 빠진 곳은 없는지 다시 살펴보세요.'; return; } gameSolved = true; gameScore += Math.max(40, 100 - wrongLines.size * 20); button.classList.add('correct'); $('code-lines').querySelectorAll('button').forEach(line => { line.disabled = true; }); const strong = document.createElement('strong'); strong.textContent = '정답! 버그를 찾았어요 ✦'; const reason = document.createElement('p'); reason.textContent = question.why; const fix = document.createElement('p'); fix.textContent = question.fix; $('game-feedback').replaceChildren(strong, reason, fix); $('game-score').textContent = `${gameScore} pts`; if (gameIndex < challenges.length - 1) $('game-next').hidden = false; else { $('game-progress').textContent = `탐험 완료 ♡ 총 ${gameScore} / 300 pts`; $('game-restart').hidden = false; } }
+function renderChallenge() { $('game-result').hidden = true; $('code-lines').hidden = false; $('game-title').hidden = false; $('game-prompt').hidden = false; $('game-feedback').hidden = false; const question = challenges[gameIndex]; gameSolved = false; wrongLines = new Set(); $('game-progress').textContent = `문제 ${gameIndex + 1} / ${challenges.length} · ${question.language}`; $('game-score').textContent = `${gameScore} pts`; $('game-title').textContent = question.title; $('game-prompt').textContent = '취약점이 발생하는 줄을 눌러보세요.'; $('game-feedback').replaceChildren(); $('game-next').hidden = true; $('game-restart').hidden = true; $('code-lines').replaceChildren(); question.lines.forEach((line, index) => { const button = document.createElement('button'); button.className = 'code-line'; const number = document.createElement('span'); number.textContent = String(index + 1); const code = document.createElement('code'); code.textContent = line; button.append(number, code); button.setAttribute('aria-label', `${index + 1}번째 줄: ${line}`); button.addEventListener('click', () => answerLine(index, button)); $('code-lines').append(button); }); }
+function answerLine(index, button) { if (gameSolved) return; const question = challenges[gameIndex]; if (index !== question.answer) { wrongLines.add(index); button.classList.add('wrong'); $('game-feedback').textContent = '이 줄은 핵심 취약 지점이 아니에요. 외부 입력이 어디에 쓰이는지, 권한 검사가 빠진 곳은 없는지 다시 살펴보세요.'; return; } gameSolved = true; gameScore += Math.max(40, 100 - wrongLines.size * 20); button.classList.add('correct'); $('code-lines').querySelectorAll('button').forEach(line => { line.disabled = true; }); const strong = document.createElement('strong'); strong.textContent = '정답! 버그를 찾았어요 ✦'; const reason = document.createElement('p'); reason.textContent = question.why; const fix = document.createElement('p'); fix.textContent = question.fix; $('game-feedback').replaceChildren(strong, reason, fix); $('game-score').textContent = `${gameScore} pts`; if (gameIndex < challenges.length - 1) $('game-next').hidden = false; else { hunterUnlocked = true; bestScore = Math.max(bestScore, gameScore); const saved = storageSet(REWARD_KEY, { unlocked: true, bestScore }); updateRewardControls(); renderCompletion(); if (!saved) toast('보상은 획득했지만 브라우저에 저장하지 못했어요. 이 화면에서는 사용할 수 있어요.'); } }
 $('game-next').addEventListener('click', () => { if (!gameSolved || gameIndex >= challenges.length - 1) return; gameIndex++; renderChallenge(); });
 $('game-restart').addEventListener('click', () => { gameIndex = 0; gameScore = 0; renderChallenge(); });
-renderChallenge();
+function renderCompletion() {
+  $('game-progress').textContent = '3 / 3 완료'; $('game-score').textContent = `${bestScore} pts · 최고 기록`;
+  $('game-title').hidden = true; $('game-prompt').hidden = true; $('code-lines').hidden = true; $('game-feedback').hidden = true;
+  $('game-next').hidden = true; $('game-restart').hidden = false; $('game-result').hidden = false;
+  $('reward-score').textContent = `최고 기록 ${bestScore} / 300 pts`;
+}
+$('use-reward').addEventListener('click', () => { if (!hunterUnlocked) return; $('game-dialog').close(); $('hunter-style').checked = true; openDialog('guest-dialog'); });
+if (hunterUnlocked) renderCompletion(); else renderChallenge();
 
 // Movable furniture, stored only in this browser. Pointer and keyboard controls.
 const room = $('room');
