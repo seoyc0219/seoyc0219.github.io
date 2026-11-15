@@ -143,19 +143,28 @@ if (room) {
     let label = types[item.type].label;
     if (item.type === 'chair') label = '의자 · 한 바퀴 회전';
     if (item.type === 'bed') { label = sleeping ? '침대 · 캐릭터 깨우기' : '침대 · 캐릭터 재우기'; button.setAttribute('aria-pressed',String(sleeping)); }
-    if (item.type === 'lamp') { label = lightsOn ? '조명 · 불 끄기' : '조명 · 불 켜기'; button.setAttribute('aria-pressed',String(lightsOn)); button.classList.toggle('lamp-lit',lightsOn); button.querySelector('use').setAttribute('href',lightsOn ? '#i-lamp' : '#i-lamp-off'); }
     if (item.type === 'plant') { const stage = plantStage(item); label = stage === 4 ? '식물 · 다 자랐어요' : `식물 · 성장 ${stage}/4 · 눌러서 키우기`; button.dataset.growth = String(stage); button.querySelector('use').setAttribute('href',`#i-plant-${stage}`); }
     button.setAttribute('aria-label',label + (editing ? ' · 꾸미기 모드 · 방향키로 이동' : ''));
     button.querySelector('.item-label').textContent = label;
   }
-  function refreshLife() { updateAvatar(); room.classList.toggle('lights-off',!lightsOn); layer.querySelectorAll('.furniture').forEach((button,index) => refreshFurniture(button,items[index])); }
+  function refreshLife() {
+    updateAvatar(); room.classList.toggle('lights-off',!lightsOn);
+    const ceiling = $('ceiling-light');
+    ceiling.setAttribute('aria-pressed',String(lightsOn));
+    ceiling.setAttribute('aria-label',lightsOn ? '천장 조명 · 불 끄기' : '천장 조명 · 불 켜기');
+    ceiling.title = ceiling.getAttribute('aria-label');
+    layer.querySelectorAll('.furniture').forEach((button,index) => refreshFurniture(button,items[index]));
+  }
 
-  const types = { desk: { label: '노트북 · 기술 글 목록', width: 43 }, shelf: { label: '책장 · 방명록', width: 23 }, bed: { label: '침대', width: 39 }, chair: { label: '의자', width: 15 }, plant: { label: '화분', width: 15 }, lamp: { label: '조명', width: 12 }, bug: { label: '작은 벌레 · 버그 찾기 게임', width: 8 } };
-  const defaults = () => [ { id: 'bed', type: 'bed', x: 1, y: 68 }, { id: 'plant', type: 'plant', x: 5, y: 45 }, { id: 'shelf', type: 'shelf', x: 74, y: 30 }, { id: 'desk', type: 'desk', x: 32, y: 43 }, { id: 'lamp', type: 'lamp', x: 29, y: 35 }, { id: 'chair', type: 'chair', x: 53, y: 70 }, { id: 'bug', type: 'bug', x: 84, y: 84 } ];
-  function validItems(value) { return Array.isArray(value) && value.length <= 24 && value.every(item => item && typeof item.id === 'string' && typeof item.type === 'string' && Object.hasOwn(types, item.type) && Number.isFinite(item.x) && item.x >= 0 && item.x <= 100 && Number.isFinite(item.y) && item.y >= 0 && item.y <= 100) && new Set(value.map(item => item.id)).size === value.length; }
-  const saved = storageGet(ROOM_KEY, null); let items = validItems(saved) ? saved : defaults();
+  const types = { desk: { label: '노트북 · 기술 글 목록', width: 43 }, shelf: { label: '책장 · 방명록', width: 23 }, bed: { label: '침대', width: 39 }, chair: { label: '의자', width: 15 }, plant: { label: '화분', width: 15 }, bug: { label: '작은 벌레 · 버그 찾기 게임', width: 8 } };
+  const defaults = () => [ { id: 'bed', type: 'bed', x: 1, y: 68 }, { id: 'plant', type: 'plant', x: 5, y: 45 }, { id: 'shelf', type: 'shelf', x: 74, y: 30 }, { id: 'desk', type: 'desk', x: 32, y: 43 }, { id: 'chair', type: 'chair', x: 53, y: 70 }, { id: 'bug', type: 'bug', x: 84, y: 84 } ];
+  function validItems(value) { return Array.isArray(value) && value.length <= 24 && value.every(item => item && typeof item.id === 'string' && typeof item.type === 'string' && (Object.hasOwn(types, item.type) || item.type === 'lamp') && Number.isFinite(item.x) && item.x >= 0 && item.x <= 100 && Number.isFinite(item.y) && item.y >= 0 && item.y <= 100) && new Set(value.map(item => item.id)).size === value.length; }
+  const saved = storageGet(ROOM_KEY, null); let items = validItems(saved) ? saved.filter(item => item.type !== 'lamp') : defaults();
+  // Migrate only removed stands; preserve every other saved furniture position.
+  if (validItems(saved) && items.length !== saved.length) storageSet(ROOM_KEY,items);
   let editing = false, selected = null, dirty = false, dragging = null, suppressClickUntil = 0;
   const layer = $('furniture-layer');
+  $('ceiling-light').addEventListener('click', () => { lightsOn = !lightsOn; refreshLife(); saveLife(); });
   function markDirty() { dirty = true; $('save-status').textContent = '아직 저장하지 않은 배치예요. 배치 저장을 눌러주세요.'; }
   function bounds(element) { const r = room.getBoundingClientRect(); return { maxX: Math.max(0, 100 - element.offsetWidth / r.width * 100), maxY: Math.max(0, 100 - element.offsetHeight / r.height * 100) }; }
   function place(element, item) { const limits = bounds(element); item.x = Math.min(limits.maxX, Math.max(0, item.x)); item.y = Math.min(limits.maxY, Math.max(0, item.y)); element.style.setProperty('--x', `${item.x}%`); element.style.setProperty('--y', `${item.y}%`); element.style.zIndex = String(Math.round(item.y)); }
@@ -166,7 +175,6 @@ if (room) {
     else if (type === 'shelf') openDialog('guest-dialog');
     else if (type === 'bug') openDialog('game-dialog');
     else if (type === 'bed') { sleeping = !sleeping; refreshLife(); saveLife(); toast(sleeping ? '캐릭터가 잠들었어요. 침대를 다시 누르면 깨어나요 ☾' : '캐릭터가 깨어났어요!'); }
-    else if (type === 'lamp') { lightsOn = !lightsOn; refreshLife(); saveLife(); toast(lightsOn ? '불을 켰어요.' : '불을 껐어요. 조명을 다시 누르면 켜져요.'); }
     else if (type === 'plant') {
       const stage = plantStage(item);
       if (stage === 4) { toast('식물이 다 자랐어요! 🌸'); return; }
@@ -189,7 +197,7 @@ if (room) {
       },reduced ? 180 : 120);
     }
   }
-  function renderRoom() { layer.replaceChildren(); items.forEach(item => { const button = document.createElement('button'); button.className = 'furniture'; button.dataset.itemId = item.id; button.dataset.type = item.type; button.style.setProperty('--w', `${types[item.type].width}%`); button.style.setProperty('--x', `${item.x}%`); button.style.setProperty('--y', `${item.y}%`); button.style.zIndex = String(Math.round(item.y)); button.setAttribute('aria-label', types[item.type].label + (editing ? ' · 방향키로 이동' : '')); const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); const use = document.createElementNS('http://www.w3.org/2000/svg', 'use'); const viewBoxes = { desk: '0 0 180 135', shelf: '0 0 115 155', bed: '0 0 180 105', plant: '0 0 90 125', chair: '0 0 95 125', lamp: '0 0 95 125', bug: '0 0 70 70' }; svg.setAttribute('viewBox', viewBoxes[item.type]); svg.setAttribute('aria-hidden', 'true'); use.setAttribute('href', `#i-${item.type}`); svg.append(use); const label = document.createElement('span'); label.className = 'item-label'; label.textContent = types[item.type].label; button.append(svg, label);
+  function renderRoom() { layer.replaceChildren(); items.forEach(item => { const button = document.createElement('button'); button.className = 'furniture'; button.dataset.itemId = item.id; button.dataset.type = item.type; button.style.setProperty('--w', `${types[item.type].width}%`); button.style.setProperty('--x', `${item.x}%`); button.style.setProperty('--y', `${item.y}%`); button.style.zIndex = String(Math.round(item.y)); button.setAttribute('aria-label', types[item.type].label + (editing ? ' · 방향키로 이동' : '')); const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); const use = document.createElementNS('http://www.w3.org/2000/svg', 'use'); const viewBoxes = { desk: '0 0 180 135', shelf: '0 0 115 155', bed: '0 0 180 105', plant: '0 0 90 125', chair: '0 0 95 125', bug: '0 0 70 70' }; svg.setAttribute('viewBox', viewBoxes[item.type]); svg.setAttribute('aria-hidden', 'true'); use.setAttribute('href', `#i-${item.type}`); svg.append(use); const label = document.createElement('span'); label.className = 'item-label'; label.textContent = types[item.type].label; button.append(svg, label);
     button.addEventListener('click', () => { if (Date.now() < suppressClickUntil) return; if (editing) select(item.id); else activate(item, button); });
     button.addEventListener('pointerdown', event => { if (!editing || (event.pointerType === 'mouse' && event.button !== 0)) return; select(item.id); const rect = room.getBoundingClientRect(); dragging = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY, x: item.x, y: item.y, width: rect.width, height: rect.height, moved: false }; button.setPointerCapture(event.pointerId); });
     button.addEventListener('pointermove', event => { if (!dragging || dragging.pointerId !== event.pointerId || !editing) return; const dx = event.clientX - dragging.startX, dy = event.clientY - dragging.startY; if (Math.abs(dx) + Math.abs(dy) > 4) dragging.moved = true; if (!dragging.moved) return; item.x = dragging.x + dx / dragging.width * 100; item.y = dragging.y + dy / dragging.height * 100; place(button, item); markDirty(); });
