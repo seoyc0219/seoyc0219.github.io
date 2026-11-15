@@ -1,14 +1,11 @@
-const posts=[
-{id:'first',cat:'Notes',title:'완벽한 시작보다, 일단 시작하는 마음',desc:'나만의 작은 공간을 만들었습니다. 배운 것과 만든 것, 그 과정의 이야기.',date:'2026.11.15',time:3,body:'작은 기록 하나가 다음 시도의 출발점이 되기를 바랍니다. 이 글은 블로그 구성을 보여주기 위한 예시입니다.',sub:'기록하고 싶은 것들',detail:'새로 배운 개념, 직접 만들어 본 프로젝트, 잘 풀리지 않았던 문제와 해결 과정까지. 작은 호기심을 오래 이어갈 수 있는 공간을 만들고 싶습니다.'},
-{id:'web',cat:'Dev',title:'브라우저에 주소를 입력하면 무슨 일이 일어날까?',desc:'DNS부터 렌더링까지, 매일 사용하는 웹의 여정을 따라가 봅니다.',date:'2026.11.12',time:8,body:'이 글은 글 목록과 본문 디자인을 살펴보기 위한 예시 글입니다. 실제 학습 내용을 이 자리에 추가할 수 있습니다.',sub:'웹을 이해하는 첫걸음',detail:'도메인 주소를 IP 주소로 바꾸고, 서버와 연결한 뒤, 응답받은 HTML을 화면에 표시합니다. 각 단계의 원리와 직접 관찰한 결과를 기록해 보세요.'},
-{id:'security',cat:'Security',title:'처음 만나는 웹 보안: 신뢰의 경계',desc:'입력값을 어디까지 믿어도 될까? 보안 공부를 시작하며 정리한 질문들.',date:'2026.11.09',time:6,body:'이 글은 보안 카테고리의 예시입니다. 직접 공부한 내용을 Markdown 글로 바꾸어 게시할 수 있습니다.',sub:'질문에서 출발하기',detail:'사용자 입력과 외부 데이터가 시스템을 통과하는 흐름을 그려 보세요. 인증, 권한 검사, 입력 검증이 어디에서 이루어지는지 살펴보는 것이 출발점입니다.'},
-{id:'git',cat:'Dev',title:'Git을 쓰면서 뒤늦게 이해한 것들',desc:'커밋은 저장 버튼보다 많은 것을 담고 있었습니다.',date:'2026.11.05',time:5,body:'이 글은 개발 기록의 예시입니다. 프로젝트에서 만난 문제와 해결 과정을 이곳에 정리해 보세요.',sub:'변화를 설명하는 기록',detail:'커밋 메시지에 무엇을 바꾸었는지와 왜 바꾸었는지를 남기면, 미래의 내가 맥락을 되찾기 쉽습니다. 작은 단위의 커밋부터 연습해 볼 수 있습니다.'},
-{id:'learning',cat:'Notes',title:'공부한 것을 내 언어로 설명한다는 것',desc:'읽고 이해했다고 생각했는데, 막상 쓰려니 어려웠던 이유.',date:'2026.11.02',time:4,body:'이 글은 생각을 담는 예시 글입니다. 블로그는 완성된 지식뿐 아니라 이해해 가는 과정도 담을 수 있습니다.',sub:'설명이 막히는 곳에 머무르기',detail:'개념을 설명하다 멈추는 지점을 질문으로 남겨 보세요. 다시 찾아보고 작은 예제를 만들어 확인하면, 기록 자체가 다음 공부의 지도가 됩니다.'},
-{id:'terminal',cat:'Dev',title:'나에게 맞는 작은 개발 환경 만들기',desc:'도구를 늘리기보다, 자주 하는 일을 편하게 만드는 쪽으로.',date:'2026.10.28',time:5,body:'이 글은 개발 환경 소개의 예시입니다. 사용하는 도구와 설정, 선택한 이유를 여기에 담아 보세요.',sub:'반복을 줄이는 설정',detail:'자주 쓰는 명령어 하나, 읽기 편한 글꼴, 단순한 폴더 구조부터 시작해 보세요. 실제로 편해진 부분을 기록하면 다른 사람에게도 도움이 됩니다.'}
-];
-const names={Dev:'개발',Security:'보안',Notes:'생각'};let category='All';const search=document.querySelector('#search');
-function render(){const q=search.value.trim().toLowerCase();const selected=posts.filter(p=>(category==='All'||p.cat===category)&&`${p.title} ${p.desc} ${names[p.cat]}`.toLowerCase().includes(q));const featured=category==='All'&&!q;document.querySelector('#featured').hidden=!featured;const rows=featured?selected.filter(p=>p.id!=='first'):selected;document.querySelector('#posts').innerHTML=rows.map((p,i)=>`<a class="post" href="#post/${p.id}"><span class="post-num">${String(i+1).padStart(2,'0')}</span><div><span class="tag">${names[p.cat]} · 예시 글</span><h3>${p.title}</h3><p>${p.desc}</p></div><div class="post-end">${p.date} · ${p.time} min<span class="arrow">↗</span></div></a>`).join('');document.querySelector('#count').textContent=String(selected.length).padStart(2,'0');document.querySelector('#empty').hidden=selected.length>0;}
-document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{category=b.dataset.cat;document.querySelectorAll('[data-cat]').forEach(x=>x.classList.toggle('active',x===b));render()});search.oninput=render;
-const dialog=document.querySelector('#reader'),article=document.querySelector('#article');function openArticle(){const id=location.hash.replace('#post/','');const p=posts.find(x=>x.id===id);if(!p)return;article.innerHTML=`<span class="tag">${names[p.cat]} · 예시 글 / ${p.date} / ${p.time} min read</span><h1>${p.title}</h1><p>${p.body}</p><h2>${p.sub}</h2><p>${p.detail}</p><h2>다음 기록을 위해</h2><p>직접 경험한 내용과 참고 자료를 추가해 나만의 글로 채워 보세요.</p>`;if(!dialog.open)dialog.showModal();article.scrollTop=0;}
-function about(){article.innerHTML='<span class="eyebrow">ABOUT MARGIN</span><h1>생각이 쌓이는 곳.</h1><p>MARGIN은 배우고, 만들고, 기록하는 개인 기술 블로그의 시작점입니다.</p><h2>아직은 첫 페이지</h2><p>현재 이름과 게시물은 디자인을 보여주는 예시입니다. 나의 닉네임과 소개, 실제 글로 바꾸어 나만의 공간을 완성할 수 있습니다.</p><p>개발 · 보안 · 생각 — 세 가지 주제로 작은 발견을 모읍니다.</p>';dialog.showModal()};document.querySelector('#about').onclick=about;document.querySelector('#about-bottom').onclick=about;document.querySelector('.close').onclick=()=>dialog.close();dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});dialog.addEventListener('close',()=>{if(location.hash.startsWith('#post/'))history.replaceState(null,'',location.pathname+location.search+'#journal')});window.addEventListener('hashchange',openArticle);
-let saved;try{saved=localStorage.getItem('margin-theme')}catch{}if(saved==='dark')document.body.classList.add('dark');document.querySelector('#theme').onclick=()=>{document.body.classList.toggle('dark');try{localStorage.setItem('margin-theme',document.body.classList.contains('dark')?'dark':'light')}catch{}};render();openArticle();
+const categories = document.querySelectorAll('[data-category]');
+categories.forEach(button => {
+  button.addEventListener('click', () => {
+    categories.forEach(category => {
+      const active = category === button;
+      category.classList.toggle('active', active);
+      category.setAttribute('aria-pressed', String(active));
+    });
+    document.querySelector('#empty-title').textContent = `${button.dataset.category} 카테고리에 아직 글이 없어요.`;
+  });
+});
