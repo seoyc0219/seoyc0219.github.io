@@ -90,3 +90,9 @@ GitHub Pages가 main 브랜치 루트에서 Jekyll로 빌드하고 배포합니�
 
 로컬 실행(Ruby/Bundler 설치 필요): `bundle install` 후 `bundle exec jekyll serve`.
 `Validate Jekyll` 검증은 임시 Markdown 글로 목록·본문 생성을 확인합니다. 검증용 글은 실행 환경에서만 만들어지며 사이트에 배포되지 않습니다.
+
+## 라이선스
+
+이 저장소에는 별도의 라이선스를 지정하지 않았습니다. 코드, 디자인, 이미지 또는 글을 사용·수정·재배포하고 싶다면 [작성자 seoyc0219](https://github.com/seoyc0219)에게 먼저 연락해 주세요.
+
+외부 라이브러리와 폰트 등 제3자 자료에는 각 자료의 라이선스가 적용됩니다.
