@@ -65,8 +65,8 @@ main{border-color:#b3a0c5;background:linear-gradient(135deg,#fcf9fd,#f5f0f8)}
 .guest-tip{background:linear-gradient(120deg,#f0e5f8,#eee9f1)}
 .guest-style{border-color:#d2bfdf;background:#f6effa}
 .guest-style input{accent-color:#a180bc}
-.guest-card.hunter-card{background:linear-gradient(130deg,#fff7df,#f2e6fb);border-color:#b99dcd}
-.hunter-badge{background:linear-gradient(120deg,#fff0b8,#ead8f5);border-color:#c5aed0;color:#80608e}
+.guest-card.hunter-card{background:linear-gradient(130deg,#ffe1cf,#f2e6fb);border-color:#b99dcd}
+.hunter-badge{background:linear-gradient(120deg,#ffd4bc,#ead8f5);border-color:#c5aed0;color:#80608e}
 .reward-preview{background:#f8effd;border-color:#c5a8da}
 .game-result h2{color:#9166b2}
 .statusbar{color:#7b668b}
