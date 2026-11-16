@@ -13,6 +13,28 @@ date: 2026-11-16 23:52:00 +0900
 
 개발 공부를 기록할 때 많이 사용하는 플랫폼으로는 벨로그, 티스토리, GitHub Pages 이렇게 3가지가 대표적인데요.
 
+<div class="platform-logos" role="group" aria-label="비교하는 블로그 플랫폼">
+  <figure>
+    <a class="platform-logo-image" href="https://velog.io/" aria-label="벨로그 공식 사이트">
+      <img src="/assets/brands/velog.svg" width="71" height="24" alt="벨로그 로고" loading="lazy" />
+    </a>
+    <figcaption>벨로그</figcaption>
+  </figure>
+  <figure>
+    <a class="platform-logo-image" href="https://www.tistory.com/" aria-label="티스토리 공식 사이트">
+      <img src="/assets/brands/tistory.svg" width="50" height="50" alt="티스토리 로고" loading="lazy" />
+    </a>
+    <figcaption>티스토리</figcaption>
+  </figure>
+  <figure>
+    <a class="platform-logo-image" href="https://github.com/" aria-label="GitHub 공식 사이트">
+      <img src="/assets/brands/github.svg" width="448" height="127" alt="GitHub 로고" loading="lazy" />
+    </a>
+    <figcaption>GitHub Pages</figcaption>
+  </figure>
+</div>
+<p class="brand-sources">로고 출처: <a href="https://github.com/velog-io/velog/tree/main/apps/web/src/assets/icons/svg">벨로그 공식 저장소</a> · <a href="https://www.tistory.com/">티스토리 공식 사이트</a> · <a href="https://brand.github.com/foundations/logo">GitHub Brand Toolkit</a></p>
+
 | 플랫폼 | 장점 | 고려할 점 |
 | --- | --- | --- |
 | 벨로그 | Markdown과 코드 블록을 지원하고, 설정 없이 바로 개발 글을 쓸 수 있음 | 사이트 디자인을 자유롭게 바꾸기 어려움 |
@@ -47,8 +69,14 @@ date: 2026-11-16 23:52:00 +0900
 게시글은 `_posts` 폴더에 Markdown 파일로 작성합니다. 평소 노션을 써서 Markdown이 익숙한 점도 좋았습니다. 작성한 파일을 저장소에 올리면 **Jekyll**이 웹페이지로 만들고, **GitHub Pages**가 공개합니다!
 
 <div class="image-pair">
-  <img width="1526" height="1052" alt="image" src="https://github.com/user-attachments/assets/aa8fdd4c-1af7-449d-a993-d928fae1e6a1" />
-  <img width="1732" height="1456" alt="image" src="https://github.com/user-attachments/assets/60b2e0f2-f25f-44bd-9e55-a428c95912a7" />
+  <figure>
+    <figcaption>Markdown 작성 화면</figcaption>
+    <img width="1526" height="1052" alt="첫 번째 게시글의 Markdown 원본 작성 화면" src="https://github.com/user-attachments/assets/aa8fdd4c-1af7-449d-a993-d928fae1e6a1" />
+  </figure>
+  <figure>
+    <figcaption>GitHub Pages에 게시된 화면</figcaption>
+    <img width="1732" height="1456" alt="같은 Markdown 글이 GitHub Pages에서 웹페이지로 표시된 화면" src="https://github.com/user-attachments/assets/60b2e0f2-f25f-44bd-9e55-a428c95912a7" />
+  </figure>
 </div>
 
 사이트의 기능도 직접 연결해야 했는데, 이때 기능마다 저장 방식을 다르게 했습니다.  
