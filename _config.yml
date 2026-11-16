@@ -1,5 +1,5 @@
 title: 0chae.exe
-description: Code & Security
+description: 보안·개발 초보자의 공부 기록
 url: https://seoyc0219.github.io
 baseurl: ""
 lang: ko
@@ -24,3 +24,5 @@ exclude:
   - Gemfile.lock
   - vendor
   - .github
+
+social_image: /assets/social/share-cover.png
