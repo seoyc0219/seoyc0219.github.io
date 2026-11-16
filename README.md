@@ -101,7 +101,8 @@ Sites에서 운영하는 공개 저장 서버이며, 블로그 자체는 GitHub 
 - `index.html`: 메인과 자동 생성되는 글 목록
 - `style.css`, `holo-theme.css`, `app.js`: 화면 구성, 보라·살구색 배경과 MP3 전용 홀로그램 테마와 카테고리 필터
 - `assets/room-ceiling.png`, `assets/avatar-long.png`, `assets/avatar-long-sleep.png`: 미니룸 배경과 깨어 있는/잠든 픽셀 프로필
-- `_includes/icons.html`: 인터랙티브 가구와 바탕화면 아이콘
+- `_includes/icons.html`: 인터랙티브 가구, 바탕화면 아이콘과 선 형태의 픽셀 카테고리 아이콘
+- `favicon.svg`, `favicon.ico`, `assets/icons/`, `apple-touch-icon.png`: 픽셀 모니터 파비콘과 기기별 아이콘
 
 GitHub Pages가 main 브랜치 루트에서 Jekyll로 빌드하고 배포합니다.
 
