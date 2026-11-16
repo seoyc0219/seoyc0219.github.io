@@ -115,11 +115,9 @@ function updateRewardControls() {
 }
 updateRewardControls();
 
-// Public nickname guestbook. Only deletion capabilities remain browser-local.
+// Public nickname guestbook. Deletion is restricted to the owner admin server.
 const GUEST_API = 'https://ochae-guestbook.vigilantclef2.chatgpt.site/api/guestbook';
-const DELETE_KEY = '0chae.guest.delete.v1';
-const storedTokens = storageGet(DELETE_KEY, {});
-const deleteTokens = storedTokens && !Array.isArray(storedTokens) && typeof storedTokens === 'object' ? storedTokens : {};
+try { localStorage.removeItem('0chae.guest.delete.v1'); } catch {}
 let guests = [], guestLoading = false, guestSubmitting = false, nextGuestPage = null, autoGuestPagingBlocked = false;
 async function guestRequest(url, options = {}) {
   const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 15000);
@@ -138,14 +136,9 @@ async function prepareGuestChallenge() {
 }
 $('guest-form').addEventListener('focusin', () => { if (!guestChallenge || Date.now() > guestChallenge.expiresAt) prepareGuestChallenge().catch(() => {}); });
 function validEntry(entry) { return entry && typeof entry.id === 'string' && typeof entry.name === 'string' && typeof entry.message === 'string' && typeof entry.created_at === 'string' && Number.isFinite(Date.parse(entry.created_at)); }
-function makeGuestCard(entry, allowDelete = false) {
+function makeGuestCard(entry) {
   const card = document.createElement('article'); card.className = 'guest-card' + (entry.style === 'bug-hunter' ? ' hunter-card' : '');
   const header = document.createElement('header'); const name = document.createElement('h3'); name.textContent = entry.name.slice(0,20); header.append(name);
-  if (allowDelete && Object.hasOwn(deleteTokens, entry.id)) { const button = document.createElement('button'); button.className = 'delete-guest'; button.textContent = '삭제'; button.setAttribute('aria-label', `${entry.name.slice(0,20)}의 방명록 삭제`); button.addEventListener('click', async () => {
-    button.disabled = true;
-    try { const url = new URL(GUEST_API); url.searchParams.set('id',entry.id); await guestRequest(url.href, { method:'DELETE', headers:{Authorization:`Bearer ${deleteTokens[entry.id]}`} }); delete deleteTokens[entry.id]; storageSet(DELETE_KEY,deleteTokens); guests = guests.filter(item => item.id !== entry.id); renderGuests(); toast('방명록을 삭제했어요.'); }
-    catch(error) { button.disabled = false; toast(error.message || '삭제하지 못했어요.'); }
-  }); header.append(button); }
   const time = document.createElement('time'); time.dateTime = entry.created_at; time.textContent = new Intl.DateTimeFormat('ko-KR', {timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(entry.created_at));
   const message = document.createElement('p'); message.textContent = entry.message.slice(0,300); card.append(header,time);
   if (entry.style === 'bug-hunter') { const badge = document.createElement('span'); badge.className = 'hunter-badge'; badge.textContent = '🐛 BUG HUNTER'; card.append(badge); }
@@ -153,11 +146,11 @@ function makeGuestCard(entry, allowDelete = false) {
 }
 function guestPlaceholder(message = '방명록이 비어 있습니다') { const el = document.createElement('div'); el.className = 'guest-placeholder'; el.textContent = message; return el; }
 function renderGuests(resetScroll = false) {
-  for (const [target,allowDelete] of [[$('guest-entries'),true],[$('guest-preview'),false]]) {
+  for (const target of [$('guest-entries'),$('guest-preview')]) {
     if (!target) continue;
     const scrollTop = resetScroll ? 0 : target.scrollTop;
     target.replaceChildren();
-    if (!guests.length) target.append(guestPlaceholder()); else guests.forEach(entry => target.append(makeGuestCard(entry,allowDelete)));
+    if (!guests.length) target.append(guestPlaceholder()); else guests.forEach(entry => target.append(makeGuestCard(entry)));
     target.scrollTop = scrollTop;
   }
 }
@@ -196,14 +189,13 @@ $('guest-form').addEventListener('submit', async event => {
   event.preventDefault(); if (guestSubmitting) return; const form = event.currentTarget; const name = form.elements.nickname.value.trim().slice(0,20); const message = form.elements.message.value.trim().slice(0,300);
   if (!name || !message) { toast('닉네임과 인사를 적어주세요.'); return; }
   const style = hunterUnlocked && form.elements.style.value === 'bug-hunter' ? 'bug-hunter' : 'plain';
-  const deleteToken = Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16).padStart(2,'0')).join('');
   const submit = form.querySelector('[type="submit"]'); guestSubmitting = true; submit.disabled = true; submit.textContent = '등록하는 중…';
   try {
     if (!guestChallenge || Date.now() > guestChallenge.expiresAt) await prepareGuestChallenge();
     if (Date.now() < guestChallenge.readyAt) await new Promise(resolve => setTimeout(resolve,guestChallenge.readyAt-Date.now()));
     const challenge = guestChallenge.value; guestChallenge = null;
-    const data = await guestRequest(GUEST_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,message,style,deleteToken,website:form.elements.website.value,challenge})}); if (!validEntry(data.entry)) throw new Error('등록 결과를 확인하지 못했어요. 새로고침으로 확인해주세요.');
-    deleteTokens[data.entry.id] = deleteToken; const saved = storageSet(DELETE_KEY,deleteTokens); form.elements.message.value = ''; guests = [data.entry,...guests.filter(item => item.id !== data.entry.id)]; renderGuests(true); $('guest-status').textContent = '등록 완료! 다른 방문자에게도 보여요.'; toast(saved ? '방명록을 남겼어요 ♡' : '글은 등록됐지만 삭제 정보를 이 브라우저에 저장하지 못했어요.');
+    const data = await guestRequest(GUEST_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,message,style,website:form.elements.website.value,challenge})}); if (!validEntry(data.entry)) throw new Error('등록 결과를 확인하지 못했어요. 새로고침으로 확인해주세요.');
+    form.elements.message.value = ''; guests = [data.entry,...guests.filter(item => item.id !== data.entry.id)]; renderGuests(true); $('guest-status').textContent = '등록 완료! 다른 방문자에게도 보여요.'; toast('방명록을 남겼어요.');
   } catch(error) { $('guest-status').textContent = error.message || '등록하지 못했어요. 입력한 내용은 유지했어요.'; toast(error.message || '등록하지 못했어요. 잠시 후 다시 시도해주세요.'); }
   finally { guestSubmitting = false; submit.disabled = false; submit.textContent = '✎ 인사 남기기'; prepareGuestChallenge().catch(() => {}); }
 });
