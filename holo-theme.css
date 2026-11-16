@@ -71,7 +71,7 @@ main{border-color:#b3a0c5;background:linear-gradient(135deg,#fcf9fd,#f5f0f8)}
 .game-result h2{color:#9166b2}
 .statusbar{color:#7b668b}
 .taskbar{background:linear-gradient(#f6f1fa,#ded0ec);box-shadow:0 -2px #b29fc1}
-.taskbar>button{border-color:#9f8bb0;box-shadow:inset 2px 2px #fff,inset -2px -2px #c0b0cd;background:var(--silver-button)}
+.taskbar>button{border-color:#9f8bb0;box-shadow:inset 2px 2px #fff,inset -2px -2px #c0b0cd;background:var(--lavender-button)}
 .taskbar #start{background:linear-gradient(#f4eafa,#d7c2e7);color:#75528e}
 .taskbar #task{background:linear-gradient(#e8dbf3,#f3edf8);box-shadow:inset 1px 1px #bba8ca,inset -1px -1px #fff}
 .taskbar #music-task[aria-expanded="true"]{background:#e2d2ed;box-shadow:inset 1px 1px #b59ec6,inset -1px -1px #fff}
