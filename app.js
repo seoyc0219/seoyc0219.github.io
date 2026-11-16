@@ -82,7 +82,7 @@ const GUEST_API = 'https://ochae-guestbook.vigilantclef2.chatgpt.site/api/guestb
 const DELETE_KEY = '0chae.guest.delete.v1';
 const storedTokens = storageGet(DELETE_KEY, {});
 const deleteTokens = storedTokens && !Array.isArray(storedTokens) && typeof storedTokens === 'object' ? storedTokens : {};
-let guests = [], guestLoading = false, guestSubmitting = false, nextGuestPage = null;
+let guests = [], guestLoading = false, guestSubmitting = false, nextGuestPage = null, autoGuestPagingBlocked = false;
 async function guestRequest(url, options = {}) {
   const controller = new AbortController(); const timer = setTimeout(() => controller.abort(), 15000);
   try { const response = await fetch(url, { ...options, signal: controller.signal }); const data = await response.json(); if (!response.ok) throw new Error(data.error || '서버에 연결하지 못했어요.'); return data; }
@@ -103,16 +103,46 @@ function makeGuestCard(entry, allowDelete = false) {
   card.append(message); return card;
 }
 function guestPlaceholder(message = '방명록이 비어 있습니다') { const el = document.createElement('div'); el.className = 'guest-placeholder'; el.textContent = message; return el; }
-function renderGuests() { const entries = $('guest-entries'); entries.replaceChildren(); if (!guests.length) entries.append(guestPlaceholder()); else guests.forEach(entry => entries.append(makeGuestCard(entry,true))); const preview = $('guest-preview'); if (preview) { preview.replaceChildren(); if (!guests.length) preview.append(guestPlaceholder()); else guests.slice(0,3).forEach(entry => preview.append(makeGuestCard(entry))); } }
-async function loadGuests(more = false) {
-  if (guestLoading) return; guestLoading = true; $('refresh-guests').disabled = true; $('more-guests').disabled = true; $('guest-status').textContent = '방명록을 불러오는 중…';
-  try { const url = new URL(GUEST_API); if (more && nextGuestPage !== null) url.searchParams.set('page',String(nextGuestPage)); const data = await guestRequest(url.href); if (!Array.isArray(data.entries)) throw new Error('방명록 응답을 읽지 못했어요.');
-    const incoming = data.entries.filter(validEntry); guests = more ? [...guests,...incoming.filter(entry => !guests.some(item => item.id === entry.id))] : incoming; nextGuestPage = Number.isInteger(data.nextPage) ? data.nextPage : null;
-    renderGuests(); $('more-guests').hidden = nextGuestPage === null; $('guest-status').textContent = '모든 방문자와 함께 보는 방명록이에요.';
-  } catch(error) { $('guest-status').textContent = error.message || '방명록을 불러오지 못했어요. 새로고침을 눌러주세요.'; if (!guests.length) for (const target of [$('guest-entries'),$('guest-preview')]) if (target) target.replaceChildren(guestPlaceholder('방명록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.')); }
-  finally { guestLoading = false; $('refresh-guests').disabled = false; $('more-guests').disabled = false; }
+function renderGuests(resetScroll = false) {
+  for (const [target,allowDelete] of [[$('guest-entries'),true],[$('guest-preview'),false]]) {
+    if (!target) continue;
+    const scrollTop = resetScroll ? 0 : target.scrollTop;
+    target.replaceChildren();
+    if (!guests.length) target.append(guestPlaceholder()); else guests.forEach(entry => target.append(makeGuestCard(entry,allowDelete)));
+    target.scrollTop = scrollTop;
+  }
 }
-$('refresh-guests').addEventListener('click', () => loadGuests()); $('more-guests').addEventListener('click', () => loadGuests(true));
+function updateGuestPaging() {
+  for (const button of [$('more-guests'),$('more-guests-preview')]) {
+    if (!button) continue;
+    button.hidden = nextGuestPage === null; button.disabled = guestLoading;
+    button.textContent = guestLoading ? '불러오는 중…' : '이전 방명록 더 보기';
+  }
+  for (const region of [$('guest-entries'),$('guest-preview')]) region?.setAttribute('aria-busy',String(guestLoading));
+}
+async function loadGuests(more = false) {
+  if (guestLoading || (more && nextGuestPage === null)) return;
+  guestLoading = true; $('refresh-guests').disabled = true; updateGuestPaging(); $('guest-status').textContent = '방명록을 불러오는 중…';
+  try {
+    const url = new URL(GUEST_API); if (more) url.searchParams.set('page',String(nextGuestPage));
+    const data = await guestRequest(url.href); if (!Array.isArray(data.entries)) throw new Error('방명록 응답을 읽지 못했어요.');
+    const incoming = data.entries.filter(validEntry);
+    guests = more ? [...guests,...incoming.filter(entry => !guests.some(item => item.id === entry.id))] : incoming;
+    nextGuestPage = Number.isInteger(data.nextPage) ? data.nextPage : null;
+    autoGuestPagingBlocked = false;
+    renderGuests(!more); $('guest-status').textContent = '모든 방문자와 함께 보는 방명록이에요.';
+  } catch(error) {
+    autoGuestPagingBlocked = true;
+    $('guest-status').textContent = error.message || '방명록을 불러오지 못했어요. 새로고침을 눌러주세요.';
+    if (!guests.length) for (const target of [$('guest-entries'),$('guest-preview')]) if (target) target.replaceChildren(guestPlaceholder('방명록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.'));
+  } finally { guestLoading = false; $('refresh-guests').disabled = false; updateGuestPaging(); }
+}
+$('refresh-guests').addEventListener('click', () => loadGuests());
+for (const button of [$('more-guests'),$('more-guests-preview')]) button?.addEventListener('click', () => loadGuests(true));
+for (const region of [$('guest-entries'),$('guest-preview')]) region?.addEventListener('scroll', () => {
+  if (guestLoading || autoGuestPagingBlocked || nextGuestPage === null) return;
+  if (region.scrollHeight > region.clientHeight && region.scrollTop + region.clientHeight >= region.scrollHeight - 64) loadGuests(true);
+},{passive:true});
 $('guest-form').addEventListener('submit', async event => {
   event.preventDefault(); if (guestSubmitting) return; const form = event.currentTarget; const name = form.elements.nickname.value.trim().slice(0,20); const message = form.elements.message.value.trim().slice(0,300);
   if (!name || !message) { toast('닉네임과 인사를 적어주세요.'); return; }
@@ -120,7 +150,7 @@ $('guest-form').addEventListener('submit', async event => {
   const deleteToken = Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16).padStart(2,'0')).join('');
   const submit = form.querySelector('[type="submit"]'); guestSubmitting = true; submit.disabled = true; submit.textContent = '등록하는 중…';
   try { const data = await guestRequest(GUEST_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,message,style,deleteToken,website:form.elements.website.value})}); if (!validEntry(data.entry)) throw new Error('등록 결과를 확인하지 못했어요. 새로고침으로 확인해주세요.');
-    deleteTokens[data.entry.id] = deleteToken; const saved = storageSet(DELETE_KEY,deleteTokens); form.elements.message.value = ''; guests = [data.entry,...guests.filter(item => item.id !== data.entry.id)]; renderGuests(); $('guest-status').textContent = '등록 완료! 다른 방문자에게도 보여요.'; toast(saved ? '방명록을 남겼어요 ♡' : '글은 등록됐지만 삭제 정보를 이 브라우저에 저장하지 못했어요.');
+    deleteTokens[data.entry.id] = deleteToken; const saved = storageSet(DELETE_KEY,deleteTokens); form.elements.message.value = ''; guests = [data.entry,...guests.filter(item => item.id !== data.entry.id)]; renderGuests(true); $('guest-status').textContent = '등록 완료! 다른 방문자에게도 보여요.'; toast(saved ? '방명록을 남겼어요 ♡' : '글은 등록됐지만 삭제 정보를 이 브라우저에 저장하지 못했어요.');
   } catch(error) { $('guest-status').textContent = error.message || '등록하지 못했어요. 입력한 내용은 유지했어요.'; toast(error.message || '등록하지 못했어요. 잠시 후 다시 시도해주세요.'); }
   finally { guestSubmitting = false; submit.disabled = false; submit.textContent = '✎ 인사 남기기'; }
 });
@@ -213,7 +243,7 @@ if (room) {
   document.addEventListener('keydown', event => {
     if (!editing || !selected || $('workspace').hidden || dragging || event.defaultPrevented || event.ctrlKey || event.altKey || event.metaKey || event.isComposing) return;
     if (document.querySelector('dialog[open]') || !$('start-menu').hidden) return;
-    if (event.target.closest?.('#music-window,input,textarea,select,[contenteditable]:not([contenteditable="false"])')) return;
+    if (event.target.closest?.('#music-window,#guest-preview,input,textarea,select,[contenteditable]:not([contenteditable="false"])')) return;
     const directions = {ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
     const delta = directions[event.key]; if (!delta) return;
     const item = items.find(item => item.id === selected);
