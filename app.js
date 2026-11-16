@@ -19,6 +19,35 @@ document.addEventListener('keydown', event => { if (event.key === 'Escape') { $(
 function updateClock() { const now = new Date(); const clock = $('clock'); clock.dateTime = now.toISOString(); clock.textContent = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(now); clock.title = '한국 시간 (Asia/Seoul)'; }
 updateClock(); setInterval(updateClock, 30000);
 
+// Visible YouTube embed. Loading and playback start only from visitor actions.
+const musicWindow = $('music-window');
+let musicTrigger = null;
+function openMusic(trigger) {
+  musicTrigger = trigger || musicTrigger;
+  if (!$('music-frame')) {
+    const frame = document.createElement('iframe'); frame.id = 'music-frame'; frame.title = 'YouTube 음악 영상 플레이어';
+    const url = new URL('https://www.youtube-nocookie.com/embed/pZ5oe6p7mPk');
+    url.searchParams.set('autoplay','0'); url.searchParams.set('playsinline','1'); url.searchParams.set('rel','0');
+    frame.src = url.href; frame.width = '384'; frame.height = '216'; frame.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+    frame.allowFullscreen = true; frame.setAttribute('referrerpolicy','strict-origin-when-cross-origin');
+    frame.addEventListener('error', () => { $('music-status').textContent = '연결하지 못했어요. YouTube 링크로 열어주세요.'; });
+    $('music-player').append(frame);
+  }
+  musicWindow.hidden = false; $('music-task').setAttribute('aria-expanded','true'); $('music-task').title = '음악 창 닫기 · 재생 종료';
+  $('start-menu').hidden = true; $('start').setAttribute('aria-expanded','false');
+  $('close-music').focus({preventScroll:true});
+}
+function closeMusic() {
+  $('music-player').replaceChildren(); musicWindow.hidden = true;
+  $('music-task').setAttribute('aria-expanded','false'); $('music-task').title = '음악 창 열기';
+  $('music-status').textContent = '영상의 재생 버튼을 눌러주세요.';
+  if (musicTrigger?.isConnected) musicTrigger.focus({preventScroll:true});
+}
+document.querySelectorAll('[data-open-music]').forEach(button => button.addEventListener('click', () => openMusic(button)));
+$('music-task').addEventListener('click', event => { if (musicWindow.hidden) openMusic(event.currentTarget); else closeMusic(); });
+$('close-music').addEventListener('click',closeMusic);
+document.addEventListener('keydown', event => { if (event.key === 'Escape' && !musicWindow.hidden && !document.querySelector('dialog[open]')) closeMusic(); });
+
 // Jekyll renders actual posts; the room and the menu share this filter.
 const categoryButtons = document.querySelectorAll('[data-category]');
 const postCards = document.querySelectorAll('[data-post-categories]');
@@ -182,7 +211,7 @@ if (room) {
   document.addEventListener('keydown', event => {
     if (!editing || !selected || $('workspace').hidden || dragging || event.defaultPrevented || event.ctrlKey || event.altKey || event.metaKey || event.isComposing) return;
     if (document.querySelector('dialog[open]') || !$('start-menu').hidden) return;
-    if (event.target.closest?.('input,textarea,select,[contenteditable]:not([contenteditable="false"])')) return;
+    if (event.target.closest?.('#music-window,input,textarea,select,[contenteditable]:not([contenteditable="false"])')) return;
     const directions = {ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
     const delta = directions[event.key]; if (!delta) return;
     const item = items.find(item => item.id === selected);
