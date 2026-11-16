@@ -1,0 +1,120 @@
+/* Sky-to-lime desktop palette. The miniroom artwork keeps its original colors. */
+:root{
+  --ink:#253b59;
+  --purple:#628ab9;
+  --deep:#2866b6;
+  --lavender:#d7eaff;
+  --paper:#fffef6;
+  --line:#a6c4df;
+  --muted:#627b92;
+}
+body{
+  background-color:#b9e2ed;
+  background-image:
+    radial-gradient(ellipse at 8% 8%,#f0faff99,transparent 26%),
+    radial-gradient(ellipse at 96% 28%,#b4f3e88c,transparent 32%),
+    radial-gradient(circle at 25px 45px,#fffce0 0 2px,transparent 3px),
+    radial-gradient(circle at 110px 95px,#ffffffb3 0 1px,transparent 2px),
+    linear-gradient(180deg,#659fee 0%,#a7d4fa 34%,#d8efeb 59%,#e9f5c9 78%,#c5e994 100%);
+  background-size:auto,auto,180px 150px,145px 165px,100% 100%;
+  background-attachment:fixed;
+}
+body:before{color:#fffbd2;text-shadow:0 1px #d2f4ff}
+body:after{
+  inset:0;
+  bottom:45px;
+  height:auto;
+  clip-path:none;
+  background:conic-gradient(#ffffff16 25%,transparent 0 50%,#ffffff16 0 75%,transparent 0);
+  background-size:12px 12px;
+  mask-image:linear-gradient(#0009,transparent 65%);
+  -webkit-mask-image:linear-gradient(#0009,transparent 65%);
+}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline-color:#3778b7}
+.desktop-icons svg{filter:drop-shadow(2px 3px #3f72a33d)}
+.desktop-icons span{text-shadow:1px 1px #effcff}
+.os-window{background:#edf6fb;border-color:#5178a4;box-shadow:inset 2px 2px #fff,inset -2px -2px #a3bfda,5px 6px #3d75a447}
+.titlebar{background:linear-gradient(180deg,#9ccaff 0%,#6cacf2 12%,#3a7dd5 48%,#2665be 52%,#4485d4 100%);text-shadow:1px 1px #235293}
+.window-actions button,.titlebar>button{background:#eef7ff;border-color:#426694;box-shadow:inset 2px 2px #fff,inset -2px -2px #9db9d7;color:#25466d}
+.menubar{background:#f8fcff;border-color:#b2c9de}
+.main-nav{border-color:#84aacf;background:linear-gradient(#fffef7,#e7f2fb)}
+.main-nav>a,.main-nav>button{border-right-color:#aac7df}
+.main-nav a:hover,.main-nav button:hover{background:linear-gradient(90deg,transparent,#d9efcd,transparent)}
+main{border-color:#90b4d4;background:linear-gradient(135deg,#fffef8,#f0f8f6)}
+.page-banner h1{color:#275581;text-shadow:2px 2px #d8ecff}
+.page-banner>span{color:#ffeb99;text-shadow:1px 2px #6d9dca}
+.page-banner p{color:#547492}
+.panel{border-color:#91b4d4;background:#fffef8}
+.panel-title{background:linear-gradient(#edf8ff,#c8e5fb);border-color:#98bddb}
+.room-panel>.panel-title{background:linear-gradient(#f4fbdc,#dfefbe);border-color:#b8d193}
+.guest-panel>.panel-title{background:linear-gradient(#eff9ff,#d4eafb)}
+.avatar-frame{border-color:#a7bed5;background:#e6f0fc}
+.username,.profile-intro p,.profile-education li:before{color:#627e98}
+.furniture-palette{border-color:#a6c9d8;background:#f5fbeb}
+.palette-grid button{border-color:#a6c5dd;background:#fffef7}
+.palette-grid button:hover{background:#e7f4cd}
+.furniture-palette p{color:#69847d}
+.furniture .item-label{color:#355676;border-color:#a2bdd7;background:#fffdeb}
+.retro-button{background:linear-gradient(#fff,#d7eafa);border-color:#648eae;box-shadow:inset 2px 2px #fff,inset -2px -2px #a6c3dc,1px 2px #c5dce9;color:#2f5475}
+.retro-button:hover{background:linear-gradient(#fffef5,#e3f2c7)}
+.retro-button:active{background:#d4e8f7;box-shadow:inset 2px 2px #93b2ce}
+.small-button{border-color:#aac6db}
+.room-save-note,.storage-note,.guest-compose-note,.guest-style p{color:#708899}
+.categories{border-color:#ccdfec}
+.categories button{border-color:#bad3e5;background:#eef7ff}
+.categories button.active{border-color:#8aaf74;background:#e5f3ca;color:#3e6440}
+.post-card{border-color:#c7dce8}
+.post-meta{color:#5c7c91}
+.post-meta span{background:#e0efd1;color:#476a53}
+.post-card p{color:#627c91}
+.post-arrow{color:#7199ba}
+.empty-state p{color:#7b94a6}
+.guest-placeholder{color:#748fa1;border-color:#b8d1c1;background:#fbfff5}
+.guest-card{background:#f9fcff;border-color:#b4cfe6}
+.guest-card time,.guest-card .delete-guest,.guest-source{color:#6f8ba2}
+.guest-tip{background:#eef7db}
+.guest-style{border-color:#b6cfdf;background:#f3f9fb}
+.guest-style input{accent-color:#4e8fbe}
+.guest-card.hunter-card{background:linear-gradient(130deg,#fff8db,#edf7e8);border-color:#9ebda3}
+.hunter-badge{background:linear-gradient(120deg,#fff0ae,#d8efec);border-color:#a8bd97;color:#4f7059}
+.reward-preview{background:#f5fbeb;border-color:#a5c6b0}
+.game-result h2{color:#376c99}
+.statusbar{color:#708ca3}
+.taskbar{background:linear-gradient(#f9fdff,#d2e7f7);box-shadow:0 -2px #8aaed2}
+.taskbar>button{border-color:#6d96b9;box-shadow:inset 2px 2px #fff,inset -2px -2px #9ebdd7;background:linear-gradient(#fff,#d9ebfa)}
+.taskbar #start{background:linear-gradient(#f2ffd6,#cde99a);color:#41693c}
+.taskbar #task{background:#dbeefe;box-shadow:inset 1px 1px #9dbbd4,inset -1px -1px #fff}
+.taskbar #music-task[aria-expanded="true"]{background:#e3f2c9;box-shadow:inset 1px 1px #a5be93,inset -1px -1px #fff}
+.taskbar #music-task>span{color:#527f9f}
+.tray{border-color:#9cb8d1;box-shadow:inset 1px 1px #b3cce1;background:#edf7ff}
+.start-menu{background:#f2f9ff;border-color:#7e9dbb;box-shadow:inset 2px 2px #fff,3px -3px #547eaa40}
+.start-menu>strong{background:linear-gradient(90deg,#3071bc,#8dc1ec)}
+.start-menu>button:hover,.start-menu>a:hover{background:#e5f3cb}
+.retro-dialog{background:#fffef8;border-color:#6288ac;box-shadow:inset 2px 2px #fff,6px 8px #315d864d}
+.retro-dialog::backdrop{background:#26415d66}
+.dialog-body pre{background:#eaf3fa;border-color:#b9d2e4}
+input,textarea{border-color:#afc9dd;box-shadow:inset 2px 2px #dfebf4;background:#fffefa}
+.game-top{color:#7094ac}
+.code-lines{background:#25374c;border-color:#8caac3}
+.code-line{color:#edf6ff}
+.code-line>span{color:#8eacc5}
+.code-line:hover,.code-line:focus-visible{background:#354f6a;border-left-color:#e9d68f}
+.toast{border-color:#89a6c0;background:#fffde5;box-shadow:3px 3px #6689ab44}
+.back-link,.article-heading p{color:#6b88a0}
+.article-heading{border-color:#c2d9e9}
+.prose a{color:#3977a5}
+.prose img,.prose td,.prose th{border-color:#bdd5e6}
+.prose blockquote{background:#edf6f2;border-left-color:#92bda2;color:#627e84}
+.prose pre,.prose code{background:#eaf2f8;border-color:#bdd3e4}
+.prose th{background:#deedf8}
+.prose hr{border-color:#c1d7e6}
+.music-window{background:#f1f9ff;border-color:#709bbf;box-shadow:inset 2px 2px #fff,5px 6px #4b7da34d}
+.music-caption,.music-bottom{color:#6d899e}
+.music-player{background:#293c52;border-color:#94b7d2}
+.mp3-device{border-color:#8cabc3;background:linear-gradient(125deg,#fff,#e2eff9 60%,#c4e0f4);box-shadow:inset 2px 2px #fff,inset -2px -2px #a4bfd5,3px 4px #7ca4bd3d}
+.mp3-device:hover{box-shadow:inset 2px 2px #fff,inset -2px -2px #a4bfd5,3px 6px #7ca4bd4d}
+.mp3-brand,.mp3-open-label{color:#6a88a0}
+.mp3-wheel{border-color:#abc7da;box-shadow:inset 1px 1px #fff,1px 1px #b2c9da;background:#f9fdff}
+.mp3-wheel>span{border-color:#a9c7d9;color:#5881a1;background:linear-gradient(#f5fcff,#d1e8f7)}
+.code-line.correct{background:#486044;border-left-color:#c1e1aa}
+.code-line.wrong{background:#704257;border-left-color:#edafbd}
