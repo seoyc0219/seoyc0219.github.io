@@ -15,7 +15,7 @@ body{
   background-image:
     radial-gradient(circle at 25px 45px,#fff9df 0 2px,transparent 3px),
     radial-gradient(circle at 110px 95px,#ffffffa6 0 1px,transparent 2px),
-    linear-gradient(135deg,#b59bd2 0%,#d2b8df 35%,#edc8c9 63%,#ffe1bf 100%);
+    linear-gradient(180deg,#b59bd2 0%,#d2b8df 35%,#edc8c9 63%,#ffe1bf 100%);
   background-size:180px 150px,145px 165px,100% 100%;
   background-attachment:fixed;
 }
