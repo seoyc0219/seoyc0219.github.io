@@ -96,7 +96,7 @@ Sites에서 운영하는 공개 저장 서버이며, 블로그 자체는 GitHub 
 - `_layouts/`: 공통 화면과 글 본문 레이아웃
 - `_config.yml`: Jekyll 설정
 - `index.html`: 메인과 자동 생성되는 글 목록
-- `style.css`, `holo-theme.css`, `app.js`: 화면 구성, 보라색 바탕과 실버·홀로그램 테마와 카테고리 필터
+- `style.css`, `holo-theme.css`, `app.js`: 화면 구성, 보라·살구색 배경과 MP3 전용 홀로그램 테마와 카테고리 필터
 - `assets/room-ceiling.png`, `assets/avatar-long.png`, `assets/avatar-long-sleep.png`: 미니룸 배경과 깨어 있는/잠든 픽셀 프로필
 - `_includes/icons.html`: 인터랙티브 가구와 바탕화면 아이콘
 
