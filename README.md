@@ -96,6 +96,8 @@ Sites에서 운영하는 공개 저장 서버이며, 블로그 자체는 GitHub 
 
 ## 음악
 
+<img width="368" height="346" alt="image" src="https://github.com/user-attachments/assets/4b5533af-7017-4a01-89c8-6e56c173e81c" />
+
 프로필의 한 줄 소개 아래에 있는 MP3 모양 기기 버튼을 누르면 유튜브 플레이어가 열립니다. 바탕화면·시작 메뉴·작업표시줄의 `music.exe`에서도 열 수 있습니다.
 현재 연결: https://www.youtube.com/watch?v=pZ5oe6p7mPk (단일 영상)
 
