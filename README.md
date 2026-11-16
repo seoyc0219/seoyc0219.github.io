@@ -56,6 +56,8 @@ print("Hello!")
 
 ## 미니룸 사용법
 
+<img width="1646" height="1144" alt="image" src="https://github.com/user-attachments/assets/09956c0f-b042-4380-a8f2-3fe16d4f4e29" />
+
 - 노트북/책상: 실제 Markdown 기술 글 목록으로 이동
 - 책장의 책: 방명록 창 열기
 - 작은 벌레: SQL Injection, DOM XSS, 객체별 권한 검사(IDOR) 취약점 찾기 게임
