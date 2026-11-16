@@ -21,7 +21,44 @@ updateClock(); setInterval(updateClock, 30000);
 
 // Visible YouTube embed. Loading and playback start only from visitor actions.
 const musicWindow = $('music-window');
-let musicTrigger = null;
+const musicHandle = $('music-drag-handle');
+let musicTrigger = null, musicPosition = null, musicDrag = null;
+function placeMusicWindow(x,y) {
+  const rect = musicWindow.getBoundingClientRect();
+  const taskbarHeight = document.querySelector('.taskbar').getBoundingClientRect().height || 45;
+  const left = Math.min(Math.max(8,x),Math.max(8,window.innerWidth-rect.width-8));
+  const top = Math.min(Math.max(8,y),Math.max(8,window.innerHeight-taskbarHeight-rect.height-8));
+  musicWindow.style.left = `${left}px`; musicWindow.style.top = `${top}px`;
+  musicWindow.style.right = 'auto'; musicWindow.style.bottom = 'auto';
+  musicPosition = {x:left,y:top};
+}
+function finishMusicDrag(event) {
+  if (!musicDrag || (event && event.pointerId !== musicDrag.pointerId)) return;
+  const pointerId = musicDrag.pointerId; musicDrag = null; musicWindow.classList.remove('is-dragging');
+  if (musicHandle.hasPointerCapture?.(pointerId)) musicHandle.releasePointerCapture(pointerId);
+}
+musicHandle.addEventListener('pointerdown',event => {
+  if (event.isPrimary === false || (event.pointerType === 'mouse' && event.button !== 0) || event.target.closest('button,a,input')) return;
+  const rect = musicWindow.getBoundingClientRect();
+  musicDrag = {pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,left:rect.left,top:rect.top};
+  musicHandle.setPointerCapture(event.pointerId); musicHandle.focus({preventScroll:true});
+  musicWindow.classList.add('is-dragging'); event.preventDefault();
+});
+musicHandle.addEventListener('pointermove',event => {
+  if (!musicDrag || event.pointerId !== musicDrag.pointerId) return;
+  placeMusicWindow(musicDrag.left+event.clientX-musicDrag.startX,musicDrag.top+event.clientY-musicDrag.startY);
+});
+for (const name of ['pointerup','pointercancel','lostpointercapture']) musicHandle.addEventListener(name,finishMusicDrag);
+musicHandle.addEventListener('keydown',event => {
+  if (event.target !== musicHandle || event.ctrlKey || event.altKey || event.metaKey) return;
+  const directions = {ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
+  const delta = directions[event.key]; if (!delta) return;
+  event.preventDefault(); const rect = musicWindow.getBoundingClientRect(); const step = event.shiftKey ? 30 : 10;
+  placeMusicWindow(rect.left+delta[0]*step,rect.top+delta[1]*step);
+});
+window.addEventListener('resize',() => {
+  finishMusicDrag(); if (!musicWindow.hidden && musicPosition) placeMusicWindow(musicPosition.x,musicPosition.y);
+});
 function openMusic(trigger) {
   musicTrigger = trigger || musicTrigger;
   if (!$('music-frame')) {
@@ -33,11 +70,12 @@ function openMusic(trigger) {
     frame.addEventListener('error', () => { $('music-status').textContent = '연결하지 못했어요. YouTube 링크로 열어주세요.'; });
     $('music-player').append(frame);
   }
-  musicWindow.hidden = false; $('music-task').setAttribute('aria-expanded','true'); $('music-task').title = '음악 창 닫기 · 재생 종료';
+  musicWindow.hidden = false; if (musicPosition) placeMusicWindow(musicPosition.x,musicPosition.y); $('music-task').setAttribute('aria-expanded','true'); $('music-task').title = '음악 창 닫기 · 재생 종료';
   $('start-menu').hidden = true; $('start').setAttribute('aria-expanded','false');
   $('close-music').focus({preventScroll:true});
 }
 function closeMusic() {
+  finishMusicDrag();
   $('music-player').replaceChildren(); musicWindow.hidden = true;
   $('music-task').setAttribute('aria-expanded','false'); $('music-task').title = '음악 창 열기';
   $('music-status').textContent = '영상의 재생 버튼을 눌러주세요.';
