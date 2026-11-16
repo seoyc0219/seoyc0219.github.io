@@ -51,11 +51,13 @@ document.addEventListener('keydown', event => { if (event.key === 'Escape' && !m
 // Jekyll renders actual posts; the room and the menu share this filter.
 const categoryButtons = document.querySelectorAll('[data-category]');
 const postCards = document.querySelectorAll('[data-post-categories]');
-let selectedCategory = new URLSearchParams(location.search).get('category') || '전체';
-if (!['전체', '개발', '보안', '기타.'].includes(selectedCategory)) selectedCategory = '전체';
+const normalizeCategory = category => category === '기타.' ? '기타' : category;
+let selectedCategory = normalizeCategory(new URLSearchParams(location.search).get('category') || '전체');
+if (!['전체', '개발', '보안', '기타'].includes(selectedCategory)) selectedCategory = '전체';
 function filterPosts(category) {
+  category = normalizeCategory(category);
   selectedCategory = category; let visible = 0;
-  postCards.forEach(post => { let names; try { names = JSON.parse(post.dataset.postCategories); } catch { names = []; } const matches = category === '전체' || names.includes(category); post.hidden = !matches; if (matches) visible++; });
+  postCards.forEach(post => { let names; try { names = JSON.parse(post.dataset.postCategories).map(normalizeCategory); } catch { names = []; } const matches = category === '전체' || names.includes(category); post.hidden = !matches; if (matches) visible++; });
   categoryButtons.forEach(button => { const active = button.dataset.category === category; button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active)); });
   if ($('empty-state')) $('empty-state').hidden = visible > 0;
   if ($('empty-title')) $('empty-title').textContent = category === '전체' ? '아직 작성된 글이 없어요.' : `${category} 카테고리에 아직 글이 없어요.`;
