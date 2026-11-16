@@ -21,3 +21,8 @@
 #music-drag-handle{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}.music-window.is-dragging #music-drag-handle{cursor:grabbing}.music-window.is-dragging iframe{pointer-events:none}#music-drag-handle>div{pointer-events:none}#music-drag-handle>button{cursor:pointer}#music-drag-handle:focus-visible{outline:1px dashed #fff;outline-offset:-4px}
 /* Let the item column fit its title instead of wrapping the final heart. */
 .room-layout{grid-template-columns:minmax(0,1fr) max-content}.furniture-palette h3{white-space:nowrap}
+
+/* Two post images side by side, stacked on small screens. */
+.prose .image-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start;margin:1.5em 0}
+.prose .image-pair>img{display:block;width:100%;height:auto;min-width:0}
+@media(max-width:600px){.prose .image-pair{grid-template-columns:minmax(0,1fr)}}
