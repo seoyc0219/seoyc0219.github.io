@@ -46,6 +46,10 @@ date: 2026-11-16 23:52:00 +0900
 
 게시글은 `_posts` 폴더에 Markdown 파일로 작성합니다. 평소 노션을 써서 Markdown이 익숙한 점도 좋았습니다. 작성한 파일을 저장소에 올리면 **Jekyll**이 웹페이지로 만들고, **GitHub Pages**가 공개합니다!
 
+<img width="1526" height="1052" alt="image" src="https://github.com/user-attachments/assets/aa8fdd4c-1af7-449d-a993-d928fae1e6a1" />
+
+<img width="1732" height="1456" alt="image" src="https://github.com/user-attachments/assets/60b2e0f2-f25f-44bd-9e55-a428c95912a7" />
+
 사이트의 기능도 직접 연결해야 했는데, 이때 기능마다 저장 방식을 다르게 했습니다.  
 방문자와 내용을 공유해야 하는 **방명록**은 **별도의 저장 공간을 연결**했고, **미니룸** 배치처럼 제 설정만 기억하면 되는 정보는 **브라우저에 저장**했습니다.
 
