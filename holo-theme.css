@@ -103,7 +103,7 @@ input,textarea{border-color:#cebadc;box-shadow:inset 2px 2px #e9dff0;background:
 .music-player{background:#392e49;border-color:#b99dcd}
 .mp3-device{--holo-silver:linear-gradient(118deg,#faf9fc 0%,#dcdde6 23%,#f1e0ee 43%,#e3ede8 60%,#dfdcea 79%,#f7f3fa 100%);--silver-button:linear-gradient(180deg,#fff 0%,#efedf4 15%,#d7d0e2 49%,#f8f5fc 53%,#ded6e8 100%);border-color:#a594b4;background-image:repeating-linear-gradient(135deg,#fff4 0 1px,transparent 1px 3px),var(--holo-silver);box-shadow:inset 2px 2px #fff,inset -2px -2px #b7a9c5,3px 4px #9a82b33d}
 .mp3-device:hover{box-shadow:inset 2px 2px #fff,inset -2px -2px #b7a9c5,3px 6px #9a82b34d}
-.mp3-brand,.mp3-open-label{color:#765d87}
+.mp3-open-label{color:#765d87}
 .mp3-screen{background:linear-gradient(120deg,#e9deef,#d8dce4 48%,#e0e8dd);border-color:#b6a7bf;box-shadow:inset 1px 1px #a298aa;color:#6c587b}
 .mp3-wheel{border-color:#c4afd1;box-shadow:inset 1px 1px #fff,1px 1px #cbbbd8;background:linear-gradient(#fcfaff,#e9dff2)}
 .mp3-wheel>span{border-color:#c4acd3;color:#9d76b4;background:var(--silver-button)}
