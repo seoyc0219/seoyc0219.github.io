@@ -126,6 +126,17 @@ async function guestRequest(url, options = {}) {
   try { const response = await fetch(url, { ...options, signal: controller.signal }); const data = await response.json(); if (!response.ok) throw new Error(data.error || '서버에 연결하지 못했어요.'); return data; }
   finally { clearTimeout(timer); }
 }
+let guestChallenge = null, guestChallengePending = null;
+async function prepareGuestChallenge() {
+  if (guestChallengePending) return guestChallengePending;
+  guestChallengePending = guestRequest(GUEST_API + '/challenge').then(data => {
+    if (typeof data.challenge !== 'string') throw new Error('등록 확인을 불러오지 못했어요.');
+    guestChallenge = { value:data.challenge, readyAt:Date.now() + Math.max(2000,Number(data.waitMs) || 2000), expiresAt:Date.now() + 29*60*1000 };
+    return guestChallenge;
+  }).finally(() => { guestChallengePending = null; });
+  return guestChallengePending;
+}
+$('guest-form').addEventListener('focusin', () => { if (!guestChallenge || Date.now() > guestChallenge.expiresAt) prepareGuestChallenge().catch(() => {}); });
 function validEntry(entry) { return entry && typeof entry.id === 'string' && typeof entry.name === 'string' && typeof entry.message === 'string' && typeof entry.created_at === 'string' && Number.isFinite(Date.parse(entry.created_at)); }
 function makeGuestCard(entry, allowDelete = false) {
   const card = document.createElement('article'); card.className = 'guest-card' + (entry.style === 'bug-hunter' ? ' hunter-card' : '');
@@ -187,10 +198,14 @@ $('guest-form').addEventListener('submit', async event => {
   const style = hunterUnlocked && form.elements.style.value === 'bug-hunter' ? 'bug-hunter' : 'plain';
   const deleteToken = Array.from(crypto.getRandomValues(new Uint8Array(24)), b => b.toString(16).padStart(2,'0')).join('');
   const submit = form.querySelector('[type="submit"]'); guestSubmitting = true; submit.disabled = true; submit.textContent = '등록하는 중…';
-  try { const data = await guestRequest(GUEST_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,message,style,deleteToken,website:form.elements.website.value})}); if (!validEntry(data.entry)) throw new Error('등록 결과를 확인하지 못했어요. 새로고침으로 확인해주세요.');
+  try {
+    if (!guestChallenge || Date.now() > guestChallenge.expiresAt) await prepareGuestChallenge();
+    if (Date.now() < guestChallenge.readyAt) await new Promise(resolve => setTimeout(resolve,guestChallenge.readyAt-Date.now()));
+    const challenge = guestChallenge.value; guestChallenge = null;
+    const data = await guestRequest(GUEST_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,message,style,deleteToken,website:form.elements.website.value,challenge})}); if (!validEntry(data.entry)) throw new Error('등록 결과를 확인하지 못했어요. 새로고침으로 확인해주세요.');
     deleteTokens[data.entry.id] = deleteToken; const saved = storageSet(DELETE_KEY,deleteTokens); form.elements.message.value = ''; guests = [data.entry,...guests.filter(item => item.id !== data.entry.id)]; renderGuests(true); $('guest-status').textContent = '등록 완료! 다른 방문자에게도 보여요.'; toast(saved ? '방명록을 남겼어요 ♡' : '글은 등록됐지만 삭제 정보를 이 브라우저에 저장하지 못했어요.');
   } catch(error) { $('guest-status').textContent = error.message || '등록하지 못했어요. 입력한 내용은 유지했어요.'; toast(error.message || '등록하지 못했어요. 잠시 후 다시 시도해주세요.'); }
-  finally { guestSubmitting = false; submit.disabled = false; submit.textContent = '✎ 인사 남기기'; }
+  finally { guestSubmitting = false; submit.disabled = false; submit.textContent = '✎ 인사 남기기'; prepareGuestChallenge().catch(() => {}); }
 });
 for (const target of [$('guest-entries'),$('guest-preview')]) if (target) target.replaceChildren(guestPlaceholder('방명록을 불러오는 중…'));
 loadGuests();
