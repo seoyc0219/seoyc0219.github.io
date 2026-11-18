@@ -51,6 +51,14 @@ jobs:
           assert 'href="/style.css?v=' in post
           assert 'src="/app.js?v=' in post
           assert '<title>Markdown conversion check · 0chae.exe</title>' in post
+          import json
+          catalog = json.loads((root / 'posts.json').read_text())
+          assert any(item['id'] == '/posts/2000/01/01/jekyll-check/' for item in catalog['posts'])
+          assert 'id="post-interactions"' in post
+          assert 'data-post-id="/posts/2000/01/01/jekyll-check/"' in post
+          assert 'src="/post-interactions.js?v=' in post
+          assert (root / 'post-interactions.js').is_file()
+          assert 'id="post-interactions"' not in home
           assert not re.search(r'{[{%]', home + post)
           print('Markdown, post layout, category metadata, URLs and assets passed.')
           PY

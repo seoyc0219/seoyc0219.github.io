@@ -5,5 +5,25 @@ layout: default
 <a class="back-link" href="{{ '/' | relative_url }}#journal">← 기록으로 돌아가기</a>
 <header class="article-heading"><div class="post-meta"><span>{{ page.categories | join: ' · ' | replace: '기타.', '기타' | escape }}</span><time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: '%Y.%m.%d' }}</time></div><h1>{{ page.title | escape }}</h1>{% if page.description %}<p>{{ page.description | escape }}</p>{% endif %}</header>
 <div class="prose">{{ content }}</div>
+<section id="post-interactions" class="post-interactions" data-post-id="{{ page.url | escape }}" aria-label="공감과 댓글">
+  <div class="post-reaction-bar">
+    <button id="post-like" class="retro-button post-like" type="button" aria-pressed="false" disabled><span id="post-like-heart" aria-hidden="true">♡</span> 공감 <span id="post-like-count">—</span></button>
+    <span>로그인 없이 공감할 수 있습니다.</span>
+  </div>
+  <p id="post-like-status" class="interaction-status" role="status"></p>
+  <h2 id="post-comments-title">댓글 <span id="post-comment-count">—</span></h2>
+  <form id="post-comment-form" class="post-comment-form">
+    <label>닉네임<input name="nickname" maxlength="20" required autocomplete="nickname" placeholder="닉네임을 입력하세요"></label>
+    <label>댓글<textarea name="message" maxlength="1000" rows="4" required placeholder="댓글을 입력하세요"></textarea></label>
+    <div class="honeypot" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
+    <p class="comment-note">로그인 없이 작성하는 공개 댓글입니다. 삭제는 블로그 운영자만 할 수 있습니다.</p>
+    <button type="submit" class="retro-button">댓글 등록</button>
+  </form>
+  <p id="post-comment-status" class="interaction-status" role="status"></p>
+  <div id="post-comment-list" class="post-comment-list" aria-labelledby="post-comments-title" aria-busy="true"><p class="comment-empty">댓글을 불러오는 중…</p></div>
+  <div class="post-comment-actions"><button id="post-comments-refresh" type="button" class="small-button">댓글 새로고침</button><button id="post-comments-more" type="button" class="retro-button" hidden>이전 댓글 더 보기</button></div>
+</section>
 <a class="back-link bottom-back" href="{{ '/' | relative_url }}#journal">← 모든 기록 보기</a>
 </article>
+
+<script src="{{ '/post-interactions.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>

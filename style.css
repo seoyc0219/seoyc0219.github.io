@@ -39,3 +39,13 @@
 .prose .platform-logos figcaption{margin-top:8px;font-size:12px;line-height:1.6}
 .prose .brand-sources{margin:8px 0 24px;font-size:11px;line-height:1.8;color:var(--muted)}
 @media(max-width:600px){.prose .platform-logos{gap:8px}.prose .platform-logo-image{height:88px;padding:12px}.prose .platform-logos img{max-height:44px}.prose .platform-logos figcaption{font-size:11px}}
+
+/* Shared per-post reactions and anonymous comments. */
+.post-interactions{margin-top:40px;padding-top:26px;border-top:1px solid #d8c5e6}
+.post-reaction-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.post-reaction-bar>span,.comment-note{font-size:12px;color:var(--muted);line-height:1.8}
+.post-like{min-width:112px;gap:7px}.post-like>span:first-child{font-size:20px;line-height:1}.post-like[aria-pressed="true"]{background:#ecd9ee;border-color:#ac739c;color:#8d3d73}
+.post-interactions>h2{font-size:20px;margin:26px 0 16px}.post-interactions>h2>span{font-size:14px;color:var(--muted);margin-left:5px}
+.post-comment-form{position:relative;display:grid;gap:12px;padding:18px;border:1px solid #d4c0e3;border-radius:8px;background:#fcf7fd}.post-comment-form>label{display:grid;gap:7px;font-size:12px}.post-comment-form input,.post-comment-form textarea{font-family:'Noto Sans KR',sans-serif;font-size:14px}.post-comment-form>button{justify-self:end}.comment-note{margin:0}
+.interaction-status{font-size:12px;line-height:1.8;color:var(--muted);overflow-wrap:anywhere}.interaction-status:empty{margin:0}
+.post-comment-list{margin-top:20px}.post-comment{padding:17px 0;border-bottom:1px solid #e1d4e9}.post-comment>header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}.post-comment h3{font-size:13px;margin:0;overflow-wrap:anywhere}.post-comment time{font-size:11px;color:var(--muted)}.post-comment>p{font:14px/1.9 'Noto Sans KR',sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0 0}.comment-empty{font-size:13px;color:var(--muted);padding:15px 0}.post-comment-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:16px}
+@media(max-width:600px){.post-interactions{margin-top:30px;padding-top:20px}.post-comment-form{padding:14px}.post-reaction-bar{gap:8px}.post-reaction-bar>span,.comment-note{font-size:11px}}
