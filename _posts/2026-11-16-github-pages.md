@@ -57,7 +57,7 @@ date: 2026-11-16 23:52:00 +0900
 
 **GitHub Pages**는 GitHub 저장소에 있는 파일을 웹사이트로 공개할 수 있는 서비스이고, `github.io`는 기본 사이트 주소에 사용되는 도메인입니다.
 
-또한 **공개 저장소를 사용하면 GitHub Free에서도 GitHub Pages를 무료로 이용할 수 있습니다.** 기본으로 제공되는 `github.io` 주소로 정적 블로그를 운영할 수 있어, 별도의 웹 호스팅 비용 없이 시작할 수 있다는 점도 장점입니다. ([GitHub 공식 문서](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages))
+또한 **GitHub Pages는 공개 저장소를 이용하면 무료로 사용할 수 있습니다.** 별도의 웹 호스팅 비용 없이 블로그를 시작할 수 있다는 점도 장점입니다. ([GitHub 공식 문서](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages))
 
 저는 글을 쉽게 관리하기 위해 **Jekyll**을 함께 사용하고 있습니다. Jekyll은 Markdown으로 작성한 글과 화면 틀을 합쳐 웹페이지로 만들어주는 도구입니다!
 
