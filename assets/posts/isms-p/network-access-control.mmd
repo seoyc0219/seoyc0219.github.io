@@ -1,0 +1,4 @@
+flowchart TD
+    A["네트워크 트래픽"] --> B["NACL · 서브넷 단위"]
+    B --> C["Security Group · 인터페이스 단위"]
+    C --> D["EC2"]
